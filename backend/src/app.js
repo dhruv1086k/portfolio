@@ -62,7 +62,7 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/config', configRoutes);
 
 // ── 404 Handler ──
-app.use('*', (req, res) => {
+app.use('/{*splat}', (req, res) => {
   res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
 });
 

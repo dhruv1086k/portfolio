@@ -6,18 +6,35 @@ import Tag from '../ui/Tag';
 import { SITE_CONFIG } from '../../constants/data';
 
 export default function HeroSection() {
-  const bgTextRef = useRef(null);
+  const psInitialized = useRef(false);
 
-  // Parallax effect on background text
+  // Initialize ParticleSlider after DOM is ready
   useEffect(() => {
-    const handleScroll = () => {
-      if (!bgTextRef.current) return;
-      const y = window.scrollY;
-      bgTextRef.current.style.transform = `translate(-50%, calc(-54% + ${y * 0.15}px))`;
-      bgTextRef.current.style.opacity = Math.max(0, 1 - y / 600);
+    if (psInitialized.current) return;
+
+    const initPS = () => {
+      if (typeof window.ParticleSlider === 'undefined') return;
+      if (!document.getElementById('particle-slider')) return;
+
+      psInitialized.current = true;
+
+      new window.ParticleSlider({
+        sliderId: 'particle-slider',
+        width: 1e6,
+        height: 1e6,
+        ptlGap: 0,        // every pixel → maximum particle count
+        ptlSize: 1.5,     // slightly above 1px so settled particles look more solid
+        color: '#1a1814',
+        hoverColor: '#c8502a',
+        mouseForce: 6000,
+        restless: false,  // particles FULLY settle → crisper image shape
+        showArrowControls: false,
+        monochrome: false,
+      });
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    const timer = setTimeout(initPS, 120);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -25,25 +42,38 @@ export default function HeroSection() {
       id="hero"
       className="min-h-screen flex flex-col justify-end px-12 pb-16 relative overflow-hidden border-b border-line max-[960px]:px-6 max-[960px]:pb-12"
     >
-      {/* Background initials */}
-      <motion.div
-        ref={bgTextRef}
-        className="absolute top-1/2 left-1/2 font-playfair font-black text-transparent leading-none whitespace-nowrap pointer-events-none select-none"
+      {/* ─── Particle Dust (bottom-right) ─── */}
+      <div
+        className="absolute -bottom-20 right-0 select-none"
         style={{
-          fontSize: 'clamp(200px, 28vw, 420px)',
-          WebkitTextStroke: '1px var(--color-line)',
-          letterSpacing: '-10px',
-          transform: 'translate(-50%, -54%)',
+          width: 'clamp(320px, 42vw, 620px)',
+          height: 'clamp(420px, 88vh, 820px)',
+          zIndex: 1,
         }}
-        initial={{ opacity: 0, scale: 1.04 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
       >
-        {SITE_CONFIG.initials}
-      </motion.div>
+        {/* ParticleSlider container — must be direct child with id */}
+        <div
+          id="particle-slider"
+          className="absolute inset-0 overflow-hidden"
+          style={{ background: 'transparent' }}
+        >
+          {/* Image source for the library — hidden */}
+          <div className="slides" style={{ display: 'none' }}>
+            <div className="slide" data-src="/logo_2.png" />
+          </div>
+          {/* Canvas where particles are drawn */}
+          <canvas
+            className="draw"
+            style={{ display: 'block', width: '100%', height: '100%' }}
+          />
+        </div>
+      </div>
 
       {/* Top bar */}
-      <div className="absolute top-[120px] left-12 right-12 flex items-start justify-between max-[960px]:left-6 max-[960px]:right-6">
+      <div
+        className="absolute top-[120px] left-12 right-12 flex items-start justify-between max-[960px]:left-6 max-[960px]:right-6"
+        style={{ zIndex: 2 }}
+      >
         <span className="font-mono text-[11px] text-ink-4 tracking-[2px] uppercase mt-1">
           [01] — Portfolio 2025
         </span>
@@ -56,10 +86,13 @@ export default function HeroSection() {
 
       {/* Main heading */}
       <motion.h1
-        className="relative z-2 font-playfair font-black leading-[0.92] mb-12"
+        className="font-playfair font-black leading-[0.92] mb-12"
         style={{
           fontSize: 'clamp(72px, 10vw, 148px)',
           letterSpacing: '-5px',
+          position: 'relative',
+          zIndex: 2,
+          maxWidth: '55%',
         }}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -72,7 +105,8 @@ export default function HeroSection() {
 
       {/* Bottom bar */}
       <motion.div
-        className="relative z-2 flex items-end justify-between max-[960px]:flex-col max-[960px]:items-start max-[960px]:gap-5"
+        className="flex items-end justify-between max-[960px]:flex-col max-[960px]:items-start max-[960px]:gap-5"
+        style={{ position: 'relative', zIndex: 2 }}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, delay: 0.5 }}
