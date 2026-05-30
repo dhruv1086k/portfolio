@@ -1,0 +1,143 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@300;400&display=swap');
+
+/* ── Custom Theme (Tailwind v4 CSS-first config) ── */
+@theme {
+  --color-cream: #f5f2ec;
+  --color-cream-2: #ede9e0;
+  --color-cream-3: #e5e0d5;
+  --color-ink: #0e0d0b;
+  --color-ink-2: #3a3830;
+  --color-ink-3: #7a7770;
+  --color-ink-4: #b0aca4;
+  --color-accent: #c8502a;
+  --color-line: rgba(14, 13, 11, 0.1);
+  --color-line-2: rgba(14, 13, 11, 0.06);
+  --color-success: #4a9e6b;
+
+  --font-playfair: "Playfair Display", serif;
+  --font-instrument: "Instrument Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --animate-blink: blink 2s infinite;
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-marquee-reverse: marquee 22s linear infinite reverse;
+  --animate-fade-up: fadeUp 0.9s ease both;
+  --animate-hero-in: heroIn 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes heroIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(1.04); }
+    to { opacity: 1; transform: translate(-50%, -54%) scale(1); }
+  }
+}
+
+
+/* ── Base Resets ── */
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-instrument);
+  font-weight: 300;
+  overflow-x: hidden;
+}
+
+/* Show custom cursor only on desktop */
+@media (min-width: 961px) {
+  body {
+    cursor: none;
+  }
+}
+
+/* ── Custom Cursor ── */
+.custom-cursor {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background: var(--color-ink);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.08s;
+  mix-blend-mode: multiply;
+}
+
+.custom-cursor-ring {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-ink);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s, border-color 0.3s;
+  opacity: 0.3;
+  mix-blend-mode: multiply;
+}
+
+.custom-cursor-ring.big {
+  width: 70px;
+  height: 70px;
+  opacity: 0.15;
+}
+
+/* ── Scroll Progress ── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 1px;
+  background: var(--color-ink);
+  z-index: 1000;
+  transform-origin: left;
+}
+
+/* ── Section Shared ── */
+.section-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-4);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* ── Scrollbar Styling ── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-4);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-3);
+}
+
+/* ── Selection ── */
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-cream);
+}
