@@ -11,7 +11,7 @@ function MarqueeTrack({ words, reverse = false }) {
       >
         {word}
       </span>
-      <span className="w-1.5 h-1.5 bg-line rounded-full shrink-0" />
+      <span className="w-1.5 h-1.5 bg-line shrink-0" />
     </div>
   ));
 

@@ -7,7 +7,7 @@ export default function Footer() {
         © {new Date().getFullYear()} {SITE_CONFIG.name} — All rights reserved
       </div>
       <div className="font-mono text-[11px] text-ink-4 tracking-[1px] flex items-center gap-2">
-        <span className="w-1.5 h-1.5 bg-success rounded-full animate-blink" />
+        <span className="w-1.5 h-1.5 bg-success animate-blink" />
         Available for opportunities
       </div>
     </footer>

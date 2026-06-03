@@ -65,13 +65,13 @@ body {
   }
 }
 
-/* ── Custom Cursor ── */
+/* ── Custom Cursor (PIXELATED — square) ── */
 .custom-cursor {
   position: fixed;
   width: 10px;
   height: 10px;
   background: var(--color-ink);
-  border-radius: 50%;
+  border-radius: 0;           /* ◼ square pixel cursor */
   pointer-events: none;
   z-index: 9999;
   transform: translate(-50%, -50%);
@@ -84,7 +84,7 @@ body {
   width: 40px;
   height: 40px;
   border: 1px solid var(--color-ink);
-  border-radius: 50%;
+  border-radius: 0;           /* ◼ square ring */
   pointer-events: none;
   z-index: 9998;
   transform: translate(-50%, -50%);
@@ -130,7 +130,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-ink-4);
-  border-radius: 2px;
+  border-radius: 0;             /* ◼ square scrollbar thumb */
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-ink-3);
@@ -140,4 +140,70 @@ body {
 ::selection {
   background-color: var(--color-accent);
   color: var(--color-cream);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIXEL THEME — Animations & Utilities
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Pixel Flicker — subtle stepped opacity animation ─── */
+@keyframes pixelFlicker {
+  0%, 100% { opacity: 0.08; }
+  25%      { opacity: 0.12; }
+  50%      { opacity: 0.06; }
+  75%      { opacity: 0.14; }
+}
+
+/* ── Pixel Corner Brackets ──────────────────────────────────────────────
+   Usage: wrap a card in .pixel-card, add a .pixel-corner-box child with
+   four <span class="pc tl|tr|bl|br" />.
+   Brackets fade in on .pixel-card:hover.
+   ──────────────────────────────────────────────────────────────────────── */
+.pixel-corner-box {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pixel-corner-box .pc {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.pixel-card:hover .pixel-corner-box .pc {
+  opacity: 1;
+}
+
+/* Top-left */
+.pixel-corner-box .pc.tl {
+  top: 6px;
+  left: 6px;
+  border-top: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+}
+/* Top-right */
+.pixel-corner-box .pc.tr {
+  top: 6px;
+  right: 6px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+}
+/* Bottom-left */
+.pixel-corner-box .pc.bl {
+  bottom: 6px;
+  left: 6px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+}
+/* Bottom-right */
+.pixel-corner-box .pc.br {
+  bottom: 6px;
+  right: 6px;
+  border-bottom: 2px solid currentColor;
+  border-right: 2px solid currentColor;
 }

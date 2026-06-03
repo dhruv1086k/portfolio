@@ -15,7 +15,7 @@ export default function AboutSection() {
       <div className="px-12 pt-[100px] pb-20 border-r border-line flex flex-col justify-between sticky top-0 h-screen overflow-hidden max-[960px]:static max-[960px]:h-auto max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-10 max-[960px]:border-r-0 max-[960px]:border-b max-[960px]:border-line">
         {/* Portrait */}
         <ScrollReveal>
-          <div className="cursor-hover relative flex-1 mb-10 bg-cream-2 rounded-2xl overflow-hidden flex items-center justify-center group max-[960px]:min-h-[280px]">
+          <div className="cursor-hover relative flex-1 mb-10 bg-cream-2 rounded-none overflow-hidden flex items-center justify-center group max-[960px]:min-h-[280px]">
             <div
               className="font-playfair font-black text-cream-3 leading-none italic transition-transform duration-600 group-hover:scale-105 group-hover:-rotate-3"
               style={{
@@ -26,7 +26,20 @@ export default function AboutSection() {
             >
               {SITE_CONFIG.initials}
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-6" style={{ background: 'linear-gradient(to top, rgba(237,233,224,0.95) 60%, transparent)' }}>
+            {/* Subtle dot-grid overlay — pixel theme accent */}
+            <div
+              aria-hidden="true"
+              style={{
+                position        : 'absolute',
+                inset           : 0,
+                pointerEvents   : 'none',
+                backgroundImage : 'radial-gradient(circle, rgba(14,13,11,0.06) 1px, transparent 1px)',
+                backgroundSize  : '20px 20px',
+                zIndex          : 1,
+              }}
+            />
+
+            <div className="absolute bottom-0 left-0 right-0 p-6 z-10" style={{ background: 'linear-gradient(to top, rgba(237,233,224,0.95) 60%, transparent)' }}>
               <div className="font-playfair text-[28px] font-bold tracking-tight">
                 {SITE_CONFIG.name}
               </div>

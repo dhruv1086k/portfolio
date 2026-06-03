@@ -47,7 +47,7 @@ export default function Navbar() {
 
         {SITE_CONFIG.available && (
           <div className="flex items-center gap-2 text-[11px] text-ink-3 tracking-[1px] uppercase font-mono">
-            <span className="w-1.5 h-1.5 bg-success rounded-full animate-blink" />
+            <span className="w-1.5 h-1.5 bg-success animate-blink" />
             Available
           </div>
         )}
