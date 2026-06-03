@@ -1,9 +1,9 @@
-import { motion } from 'framer-motion';
-import ScrollReveal from '../common/ScrollReveal';
-import MagneticButton from '../common/MagneticButton';
-import Tag from '../ui/Tag';
-import PixelCanvas from '../ui/PixelCanvas';
-import { SITE_CONFIG } from '../../constants/data';
+import { motion } from "framer-motion";
+import ScrollReveal from "../common/ScrollReveal";
+import MagneticButton from "../common/MagneticButton";
+import Tag from "../ui/Tag";
+import PixelCanvas from "../ui/PixelCanvas";
+import { SITE_CONFIG } from "../../constants/data";
 
 export default function HeroSection() {
   return (
@@ -15,12 +15,12 @@ export default function HeroSection() {
       <div
         className="absolute -bottom-20 right-0 select-none"
         style={{
-          width: 'clamp(320px, 42vw, 620px)',
-          height: 'clamp(420px, 88vh, 820px)',
+          width: "clamp(320px, 42vw, 620px)",
+          height: "clamp(420px, 88vh, 820px)",
           zIndex: 1,
         }}
       >
-        <PixelCanvas src="/logo_2.png" pixelSize={6} />
+        <PixelCanvas src="/logo_2.png" pixelSize={3} />
       </div>
 
       {/* Top bar */}
@@ -42,25 +42,27 @@ export default function HeroSection() {
       <motion.h1
         className="font-playfair font-black leading-[0.92] mb-12"
         style={{
-          fontSize: 'clamp(72px, 10vw, 148px)',
-          letterSpacing: '-5px',
-          position: 'relative',
+          fontSize: "clamp(72px, 10vw, 148px)",
+          letterSpacing: "-5px",
+          position: "relative",
           zIndex: 2,
-          maxWidth: '55%',
+          maxWidth: "55%",
         }}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
       >
-        I build<br />
-        <em className="italic text-accent">digital</em><br />
+        I build
+        <br />
+        <em className="italic text-accent">digital</em>
+        <br />
         products.
       </motion.h1>
 
       {/* Bottom bar */}
       <motion.div
         className="flex items-end justify-between max-[960px]:flex-col max-[960px]:items-start max-[960px]:gap-5"
-        style={{ position: 'relative', zIndex: 2 }}
+        style={{ position: "relative", zIndex: 2 }}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, delay: 0.5 }}
