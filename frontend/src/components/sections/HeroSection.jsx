@@ -20,7 +20,7 @@ export default function HeroSection() {
           zIndex: 1,
         }}
       >
-        <PixelCanvas src="/logo_2.png" pixelSize={3} />
+        <PixelCanvas src="/logo_2.png" pixelSize={5} />
       </div>
 
       {/* Top bar */}
@@ -28,11 +28,11 @@ export default function HeroSection() {
         className="absolute top-[120px] left-12 right-12 flex items-start justify-between max-[960px]:left-6 max-[960px]:right-6"
         style={{ zIndex: 2 }}
       >
-        <span className="font-mono text-[11px] text-ink-4 tracking-[2px] uppercase mt-1">
+        <span className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase mt-1">
           [01] — Portfolio 2025
         </span>
         <ScrollReveal delay={0.2}>
-          <div className="max-w-[340px] text-right text-sm text-ink-3 leading-[1.7] font-light">
+          <div className="max-w-[340px] text-right text-sm text-ink-3 leading-[1.7] font-mono font-light text-[12px]">
             {SITE_CONFIG.heroDescription}
           </div>
         </ScrollReveal>
@@ -40,7 +40,7 @@ export default function HeroSection() {
 
       {/* Main heading */}
       <motion.h1
-        className="font-playfair font-black leading-[0.92] mb-12"
+        className="font-playfair font-bold leading-[0.95] mb-12"
         style={{
           fontSize: "clamp(72px, 10vw, 148px)",
           letterSpacing: "-5px",
@@ -54,7 +54,7 @@ export default function HeroSection() {
       >
         I build
         <br />
-        <em className="italic text-accent">digital</em>
+        <em className="italic text-accent font-pixelify">digital</em>
         <br />
         products.
       </motion.h1>
@@ -73,8 +73,10 @@ export default function HeroSection() {
           ))}
         </div>
         <div className="flex items-center gap-5">
-          <MagneticButton href="#projects">View Work →</MagneticButton>
-          <span className="font-mono text-[11px] text-ink-4 tracking-[1.5px] uppercase">
+          <MagneticButton href="#projects" className="font-pixelify">
+            View Work →
+          </MagneticButton>
+          <span className="font-mono text-[12px] text-ink-4 tracking-[1.5px] uppercase">
             ↓ Scroll
           </span>
         </div>

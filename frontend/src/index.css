@@ -1,5 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@300;400&family=Press+Start+2P&family=Pixelify+Sans:wght@400..700&display=swap');
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@300;400&display=swap');
 
 /* ── Custom Theme (Tailwind v4 CSS-first config) ── */
 @theme {
@@ -18,6 +18,8 @@
   --font-playfair: "Playfair Display", serif;
   --font-instrument: "Instrument Sans", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+  --font-pixel: "Press Start 2P", "JetBrains Mono", monospace;
+  --font-pixelify: "Pixelify Sans", "Playfair Display", sans-serif;
 
   --animate-blink: blink 2s infinite;
   --animate-marquee: marquee 30s linear infinite;

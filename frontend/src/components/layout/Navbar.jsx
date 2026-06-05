@@ -1,23 +1,23 @@
-import { Link, useLocation } from 'react-router-dom';
-import { SITE_CONFIG } from '../../constants/data';
+import { Link, useLocation } from "react-router-dom";
+import { SITE_CONFIG } from "../../constants/data";
 
 const NAV_LINKS = [
-  { label: 'About', href: '/#about' },
-  { label: 'Work', href: '/#projects' },
-  { label: 'Experience', href: '/#experience' },
-  { label: 'Contact', href: '/#contact' },
+  { label: "About", href: "/#about" },
+  { label: "Work", href: "/#projects" },
+  { label: "Experience", href: "/#experience" },
+  { label: "Contact", href: "/#contact" },
 ];
 
 export default function Navbar() {
   const location = useLocation();
-  const isHome = location.pathname === '/';
+  const isHome = location.pathname === "/";
 
   const handleNavClick = (e, href) => {
-    if (isHome && href.startsWith('/#')) {
+    if (isHome && href.startsWith("/#")) {
       e.preventDefault();
-      const id = href.replace('/#', '');
+      const id = href.replace("/#", "");
       const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (el) el.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -27,7 +27,7 @@ export default function Navbar() {
         to="/"
         className="font-playfair text-lg font-bold text-ink no-underline tracking-tight"
       >
-        {SITE_CONFIG.name}
+        <img className="w-16" src="/public/logo.png" alt="" />
       </Link>
 
       <div className="flex items-center gap-9">
@@ -46,7 +46,7 @@ export default function Navbar() {
         </ul>
 
         {SITE_CONFIG.available && (
-          <div className="flex items-center gap-2 text-[11px] text-ink-3 tracking-[1px] uppercase font-mono">
+          <div className="flex items-center gap-2 text-[8px] text-ink-3 tracking-[1px] uppercase font-pixel">
             <span className="w-1.5 h-1.5 bg-success animate-blink" />
             Available
           </div>

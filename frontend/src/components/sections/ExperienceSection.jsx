@@ -1,21 +1,30 @@
-import ScrollReveal from '../common/ScrollReveal';
-import SectionNumber from '../common/SectionNumber';
-import ExperienceItem from '../ui/ExperienceItem';
-import AchievementCard from '../ui/AchievementCard';
-import { EXPERIENCES, ACHIEVEMENTS } from '../../constants/data';
+import ScrollReveal from "../common/ScrollReveal";
+import SectionNumber from "../common/SectionNumber";
+import ExperienceItem from "../ui/ExperienceItem";
+import AchievementCard from "../ui/AchievementCard";
+import { EXPERIENCES, ACHIEVEMENTS } from "../../constants/data";
 
 export default function ExperienceSection() {
   return (
     <section id="experience" className="border-b border-line">
       {/* Header */}
       <div className="px-12 pt-20 pb-15 border-b border-line max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-10">
-        <SectionNumber>[05] — Experience & Achievements</SectionNumber>
+        <SectionNumber>
+          <span className="font-pixelify text-[12px]">
+            [05] — Experience & Achievements
+          </span>
+        </SectionNumber>
         <ScrollReveal>
           <h2
-            className="font-playfair font-black leading-none"
-            style={{ fontSize: 'clamp(48px, 6vw, 80px)', letterSpacing: '-3px' }}
+            className="font-playfair font-bold leading-none"
+            style={{
+              fontSize: "clamp(48px, 6vw, 80px)",
+              letterSpacing: "-3px",
+            }}
           >
-            The journey<br />so <em className="italic">far.</em>
+            The journey
+            <br />
+            so <em className="italic font-pixelify">far.</em>
           </h2>
         </ScrollReveal>
       </div>

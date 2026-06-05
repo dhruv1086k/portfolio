@@ -10,8 +10,8 @@ export default function AchievementCard({ icon, title, description }) {
       </div>
 
       <div className="text-[28px] mb-3">{icon}</div>
-      <div className="font-playfair text-[17px] font-bold mb-1.5">{title}</div>
-      <div className="text-[13px] text-ink-3 leading-relaxed transition-colors duration-300 group-hover:text-cream-3">
+      <div className="font-pixelify text-[24px] font-bold mb-1.5">{title}</div>
+      <div className="text-[13px] font-mono text-ink-3 leading-relaxed transition-colors duration-300 group-hover:text-cream-3">
         {description}
       </div>
     </div>
