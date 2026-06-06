@@ -1,11 +1,32 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+function useResponsivePixelSize(breakpoints = { sm: 375, md: 768 }) {
+  const [pixelSize, setPixelSize] = useState(6);
+
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      if (w < breakpoints.sm) setPixelSize(4);
+      else if (w < breakpoints.md) setPixelSize(5);
+      else setPixelSize(6);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return pixelSize;
+}
 
 export default function PixelButton({
   href = "#",
   children = "View Work →",
   className = "",
-  pixelSize = 6,
+  pixelSize: pixelSizeProp,
 }) {
+  const responsivePixelSize = useResponsivePixelSize();
+  const pixelSize = pixelSizeProp ?? responsivePixelSize;
+
   const wrapperRef = useRef(null);
   const canvasRef = useRef(null);
   const hiddenRef = useRef(null);
@@ -63,14 +84,12 @@ export default function PixelButton({
         let r, g, b, a;
 
         if (isBorder) {
-          /* Border: dark, sharp — matches site's ink palette */
           const noise = Math.random() * 18 - 9;
           r = Math.max(0, 28 + noise);
           g = Math.max(0, 25 + noise);
           b = Math.max(0, 22 + noise);
           a = 230 + Math.random() * 25;
         } else {
-          /* Fill: dark with subtle texture */
           const noise = Math.random() * 14 - 7;
           r = Math.max(0, 30 + noise);
           g = Math.max(0, 28 + noise);
@@ -98,7 +117,6 @@ export default function PixelButton({
       }
     }
 
-    /* ~35% of interior pixels become anchors — stay near text on scatter */
     const interior = px.filter((p) => !p.isBorder);
     const anchorCount = Math.floor(interior.length * 0.35);
     for (let i = 0; i < anchorCount; i++) {
@@ -205,6 +223,10 @@ export default function PixelButton({
     if (!animRef.current) startLoop();
   };
 
+  // Touch support for mobile
+  const onTouchStart = () => onMouseEnter();
+  const onTouchEnd = () => onMouseLeave();
+
   useEffect(() => {
     const t = setTimeout(buildPixels, 80);
     const ro = new ResizeObserver(() => {
@@ -220,6 +242,20 @@ export default function PixelButton({
     };
   }, [children, pixelSize]);
 
+  // Shared fluid typography styles — must be identical between hidden sizer and visible label
+  const textStyle = {
+    fontSize: "clamp(11px, 2.5vw, 13px)",
+    fontWeight: 600,
+    letterSpacing: "clamp(0.8px, 0.2vw, 1.5px)",
+    textTransform: "uppercase",
+    whiteSpace: "nowrap",
+  };
+
+  // Fluid padding
+  const paddingStyle = {
+    padding: "clamp(10px, 2.5vw, 14px) clamp(18px, 5vw, 30px)",
+  };
+
   return (
     <a
       href={href}
@@ -228,9 +264,14 @@ export default function PixelButton({
         position: "relative",
         display: "inline-block",
         textDecoration: "none",
+        maxWidth: "100%",
+        // Ensure the anchor doesn't stretch wider than its container
+        boxSizing: "border-box",
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
       onClick={(e) => {
         if (href.startsWith("#")) {
           e.preventDefault();
@@ -238,21 +279,18 @@ export default function PixelButton({
         }
       }}
     >
-      {/* Invisible span — holds layout size */}
+      {/* Invisible span — drives layout size; must match visible text metrics exactly */}
       <span
         ref={hiddenRef}
         style={{
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "14px 30px",
-          whiteSpace: "nowrap",
+          ...paddingStyle,
+          ...textStyle,
           visibility: "hidden",
           userSelect: "none",
           pointerEvents: "none",
-          fontSize: "13px",
-          fontWeight: 500,
-          letterSpacing: "1px",
         }}
       >
         {children}
@@ -269,7 +307,7 @@ export default function PixelButton({
         }}
       />
 
-      {/* Text — crisp on top, dark ink to match site */}
+      {/* Visible label — crisp on top */}
       <span
         className={className}
         style={{
@@ -279,11 +317,7 @@ export default function PixelButton({
           alignItems: "center",
           justifyContent: "center",
           color: "#f0ece4",
-          fontSize: "13px",
-          fontWeight: 600,
-          letterSpacing: "1.5px",
-          textTransform: "uppercase",
-          whiteSpace: "nowrap",
+          ...textStyle,
           zIndex: 1,
           pointerEvents: "none",
           userSelect: "none",

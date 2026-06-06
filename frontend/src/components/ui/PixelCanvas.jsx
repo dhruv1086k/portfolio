@@ -14,13 +14,17 @@ import { useEffect, useRef, useCallback } from "react";
 
 /* ─── Adaptive pixel size based on canvas width (proxy for device power) ── */
 function getAdaptivePixelSize(canvasWidth) {
-  if (canvasWidth < 300) return 8; // tiny mobile  → ~1.5K particles
-  if (canvasWidth < 500) return 6; // small mobile → ~5K particles
+  if (canvasWidth < 300) return 7; // tiny mobile  → ~1.5K particles
+  if (canvasWidth < 500) return 4; // small mobile → ~5K particles
   if (canvasWidth < 800) return 4; // tablet       → ~12K particles
   return 3; // desktop      → ~30K particles
 }
 
-export default function PixelCanvas({ src, pixelSize }) {
+export default function PixelCanvas({
+  src,
+  pixelSize,
+  anchor = "bottom-right",
+}) {
   const canvasRef = useRef(null);
   const pixelsRef = useRef([]);
   const phaseRef = useRef("idle"); // 'assembling' | 'settled'
@@ -87,11 +91,32 @@ export default function PixelCanvas({ src, pixelSize }) {
         offscreen.height = H;
         const offCtx = offscreen.getContext("2d");
 
-        /* Scale to cover, anchored bottom-right */
-        const scale = Math.max(W / img.width, H / img.height);
+        /* Scale to contain — never crop, always show full image */
+        const scale = Math.min(W / img.width, H / img.height);
         const sw = img.width * scale;
         const sh = img.height * scale;
-        offCtx.drawImage(img, W - sw, H - sh, sw, sh);
+
+        let drawX, drawY;
+
+        // Horizontal anchor
+        if (anchor.includes("right")) {
+          drawX = W - sw;
+        } else if (anchor.includes("left")) {
+          drawX = 0;
+        } else {
+          drawX = (W - sw) / 2; // center
+        }
+
+        // Vertical anchor
+        if (anchor.includes("bottom")) {
+          drawY = H - sh;
+        } else if (anchor.includes("top")) {
+          drawY = 0;
+        } else {
+          drawY = (H - sh) / 2; // center
+        }
+
+        offCtx.drawImage(img, drawX, drawY, sw, sh);
 
         const imageData = offCtx.getImageData(0, 0, W, H).data;
         const pixels = [];
@@ -323,7 +348,7 @@ export default function PixelCanvas({ src, pixelSize }) {
       ro.disconnect();
       ioObserver.disconnect();
     };
-  }, [src, pixelSize]);
+  }, [src, pixelSize, anchor]);
 
   return (
     <canvas
