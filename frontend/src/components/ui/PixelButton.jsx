@@ -18,11 +18,21 @@ function useResponsivePixelSize(breakpoints = { sm: 375, md: 768 }) {
   return pixelSize;
 }
 
+const hexToRgb = (hex) => {
+  const cleaned = hex.replace("#", "");
+  const r = parseInt(cleaned.slice(0, 2), 16);
+  const g = parseInt(cleaned.slice(2, 4), 16);
+  const b = parseInt(cleaned.slice(4, 6), 16);
+  return { r, g, b };
+};
+
 export default function PixelButton({
   href = "#",
   children = "View Work →",
   className = "",
   pixelSize: pixelSizeProp,
+  bgColor = "#1e1c18",
+  textColor = "#f0ece4",
 }) {
   const responsivePixelSize = useResponsivePixelSize();
   const pixelSize = pixelSizeProp ?? responsivePixelSize;
@@ -72,6 +82,7 @@ export default function PixelButton({
       return cx < pSize || cx > W - pSize || cy < pSize || cy > H - pSize;
     };
 
+    const base = hexToRgb(bgColor);
     const px = [];
 
     for (let row = 0; row < rows; row++) {
@@ -85,15 +96,15 @@ export default function PixelButton({
 
         if (isBorder) {
           const noise = Math.random() * 18 - 9;
-          r = Math.max(0, 28 + noise);
-          g = Math.max(0, 25 + noise);
-          b = Math.max(0, 22 + noise);
+          r = Math.min(255, Math.max(0, Math.round(base.r * 0.78) + noise));
+          g = Math.min(255, Math.max(0, Math.round(base.g * 0.78) + noise));
+          b = Math.min(255, Math.max(0, Math.round(base.b * 0.78) + noise));
           a = 230 + Math.random() * 25;
         } else {
           const noise = Math.random() * 14 - 7;
-          r = Math.max(0, 30 + noise);
-          g = Math.max(0, 28 + noise);
-          b = Math.max(0, 24 + noise);
+          r = Math.min(255, Math.max(0, base.r + noise));
+          g = Math.min(255, Math.max(0, base.g + noise));
+          b = Math.min(255, Math.max(0, base.b + noise));
           a = 210 + Math.random() * 30;
         }
 
@@ -223,7 +234,6 @@ export default function PixelButton({
     if (!animRef.current) startLoop();
   };
 
-  // Touch support for mobile
   const onTouchStart = () => onMouseEnter();
   const onTouchEnd = () => onMouseLeave();
 
@@ -240,9 +250,8 @@ export default function PixelButton({
       cancelAnimationFrame(animRef.current);
       ro.disconnect();
     };
-  }, [children, pixelSize]);
+  }, [children, pixelSize, bgColor]);
 
-  // Shared fluid typography styles — must be identical between hidden sizer and visible label
   const textStyle = {
     fontSize: "clamp(11px, 2.5vw, 13px)",
     fontWeight: 600,
@@ -251,7 +260,6 @@ export default function PixelButton({
     whiteSpace: "nowrap",
   };
 
-  // Fluid padding
   const paddingStyle = {
     padding: "clamp(10px, 2.5vw, 14px) clamp(18px, 5vw, 30px)",
   };
@@ -265,7 +273,6 @@ export default function PixelButton({
         display: "inline-block",
         textDecoration: "none",
         maxWidth: "100%",
-        // Ensure the anchor doesn't stretch wider than its container
         boxSizing: "border-box",
       }}
       onMouseEnter={onMouseEnter}
@@ -279,7 +286,7 @@ export default function PixelButton({
         }
       }}
     >
-      {/* Invisible span — drives layout size; must match visible text metrics exactly */}
+      {/* Invisible span — drives layout size */}
       <span
         ref={hiddenRef}
         style={{
@@ -307,7 +314,7 @@ export default function PixelButton({
         }}
       />
 
-      {/* Visible label — crisp on top */}
+      {/* Visible label */}
       <span
         className={className}
         style={{
@@ -316,7 +323,7 @@ export default function PixelButton({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#f0ece4",
+          color: textColor,
           ...textStyle,
           zIndex: 1,
           pointerEvents: "none",

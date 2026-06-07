@@ -32,7 +32,6 @@ function ScoreBoard({ score, total, onExit }) {
         flexDirection: "column",
         alignItems: "center",
         pointerEvents: "auto",
-        /* Board styling */
         background: "#0D0C0A",
         border: "2px solid #C4501A",
         borderTop: "none",
@@ -43,7 +42,7 @@ function ScoreBoard({ score, total, onExit }) {
         minWidth: 220,
       }}
     >
-      {/* Notch at the top suggesting the string connects here */}
+      {/* Notch at the top */}
       <div
         style={{
           position: "absolute",
@@ -293,50 +292,151 @@ function SwatterSVG({ isSwatting }) {
   );
 }
 
+/* ── Pixelated DNA Chain ──────────────────────────────────────────────────── */
+function PixelDNAChain({ height = 150, centerX = 90 }) {
+  const P = 4; // pixel size
+  const CHAIN_PERIOD = 20; // vertical pixels per full helix cycle
+  const AMPLITUDE = 10; // how far left/right the strands swing (in pixels)
+
+  const pixels = [];
+  const rows = Math.floor(height / P);
+
+  for (let row = 0; row < rows; row++) {
+    const y = row * P;
+    const t = (row / CHAIN_PERIOD) * Math.PI * 2;
+
+    // Left strand x (sine)
+    const lx = centerX + Math.round((Math.sin(t) * AMPLITUDE) / P) * P - P;
+    // Right strand x (sine, offset half period)
+    const rx =
+      centerX + Math.round((Math.sin(t + Math.PI) * AMPLITUDE) / P) * P - P;
+
+    const isNode = row % (CHAIN_PERIOD / 2) === 0; // connection rungs every half period
+
+    // Left strand pixel
+    pixels.push(
+      <rect
+        key={`l-${row}`}
+        x={lx}
+        y={y}
+        width={P}
+        height={P}
+        fill={isNode ? "#ff8c50" : "#C4501A"}
+        opacity={isNode ? 1 : 0.85}
+      />,
+    );
+
+    // Right strand pixel
+    pixels.push(
+      <rect
+        key={`r-${row}`}
+        x={rx}
+        y={y}
+        width={P}
+        height={P}
+        fill={isNode ? "#ff8c50" : "#C4501A"}
+        opacity={isNode ? 1 : 0.85}
+      />,
+    );
+
+    // Rung pixels connecting the two strands at node rows
+    if (isNode) {
+      const minX = Math.min(lx, rx);
+      const maxX = Math.max(lx, rx);
+      for (let rx2 = minX + P; rx2 < maxX; rx2 += P) {
+        pixels.push(
+          <rect
+            key={`rung-${row}-${rx2}`}
+            x={rx2}
+            y={y}
+            width={P}
+            height={P}
+            fill="#8B6914"
+            opacity={0.7}
+          />,
+        );
+      }
+      // Node end-caps (bright square at each end)
+      pixels.push(
+        <rect
+          key={`lnode-${row}`}
+          x={lx}
+          y={y}
+          width={P}
+          height={P}
+          fill="#ffb87a"
+        />,
+        <rect
+          key={`rnode-${row}`}
+          x={rx}
+          y={y}
+          width={P}
+          height={P}
+          fill="#ffb87a"
+        />,
+      );
+    }
+  }
+
+  // Shadow pixels (offset by 1 pixel south-east, very dark)
+  const shadowPixels = pixels.map((px) => {
+    if (!px) return null;
+    const { x, y, width, height } = px.props;
+    return (
+      <rect
+        key={`shadow-${px.key}`}
+        x={+x + 1}
+        y={+y + 1}
+        width={width}
+        height={height}
+        fill="rgba(0,0,0,0.25)"
+      />
+    );
+  });
+
+  return (
+    <svg
+      width="180"
+      height={height}
+      style={{
+        overflow: "visible",
+        pointerEvents: "none",
+        display: "block",
+        imageRendering: "pixelated",
+      }}
+    >
+      {/* Shadow layer underneath */}
+      {shadowPixels}
+      {/* Main chain pixels */}
+      {pixels}
+    </svg>
+  );
+}
+
 /* ── Hanging String + Button ──────────────────────────────────────────────── */
-/* Change 2: no mouse-sway animation; Change 3: bouncing drop-in animation    */
 function HangingButton({ onClick, pulled }) {
   const [hovered, setHovered] = useState(false);
-  const STRING_LEN = 130;
+  const CHAIN_HEIGHT = 150;
+  const centerX = 90;
 
-  /* Static straight string path — no mouse wobble */
-  const buildStringPath = () => {
-    const cx = 90;
-    const points = [];
-    const NUM_POINTS = 12;
-    for (let i = 0; i <= NUM_POINTS; i++) {
-      const t = i / NUM_POINTS;
-      /* Slight natural droop only, no mouse influence */
-      const droop = t * t * 6;
-      points.push({ x: cx + droop * 0.5, y: t * STRING_LEN + droop });
-    }
-    return (
-      "M " +
-      points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L ")
-    );
-  };
-
-  const stringPath = buildStringPath();
-  /* Button top-center aligns with string tip */
-  const tipX = 90 + 0.5 * 6; /* droop at t=1 */
-  const tipY = STRING_LEN + 6;
+  const tipX = centerX;
+  const tipY = CHAIN_HEIGHT;
 
   return (
     <AnimatePresence>
       {!pulled && (
-        /* Change 3: spring bounce drop-in from above */
         <motion.div
-          initial={{ y: -220, opacity: 0 }}
+          initial={{ y: -(CHAIN_HEIGHT + 80), opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{
-            y: -280,
+            y: -(CHAIN_HEIGHT + 100),
             opacity: 0,
             transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
           }}
           transition={{
             type: "spring",
             stiffness: 160,
-            damping: 12 /* low damping = more bounce */,
+            damping: 12,
             mass: 1.2,
             delay: 0.6,
           }}
@@ -350,39 +450,8 @@ function HangingButton({ onClick, pulled }) {
             width: 180,
           }}
         >
-          {/* String SVG */}
-          <svg
-            width="180"
-            height={STRING_LEN + 10}
-            style={{
-              overflow: "visible",
-              pointerEvents: "none",
-              display: "block",
-            }}
-          >
-            <path
-              d={stringPath}
-              fill="none"
-              stroke="rgba(0,0,0,0.15)"
-              strokeWidth="3"
-              strokeLinecap="round"
-              transform="translate(1,1)"
-            />
-            <path
-              d={stringPath}
-              fill="none"
-              stroke="#8B6914"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            <path
-              d={stringPath}
-              fill="none"
-              stroke="rgba(255,220,100,0.3)"
-              strokeWidth="1"
-              strokeLinecap="round"
-            />
-          </svg>
+          {/* Pixelated DNA Chain */}
+          <PixelDNAChain height={CHAIN_HEIGHT} centerX={centerX} />
 
           {/* Button — absolutely positioned at string tip */}
           <motion.button
@@ -394,7 +463,7 @@ function HangingButton({ onClick, pulled }) {
             style={{
               position: "absolute",
               left: tipX - 70,
-              top: tipY - 2,
+              top: tipY,
               pointerEvents: "auto",
               fontFamily: "'Pixelify Sans', 'Courier New', monospace",
               fontSize: 13,
@@ -414,7 +483,6 @@ function HangingButton({ onClick, pulled }) {
               whiteSpace: "nowrap",
             }}
           >
-            {/* Pixel corner accents */}
             {[
               { top: -1, left: -1 },
               { top: -1, right: -1 },
@@ -463,9 +531,8 @@ export default function HeroSection() {
   const [totalBugs, setTotalBugs] = useState(0);
   const [buttonPulled, setButtonPulled] = useState(false);
   const [bugKillerVisible, setBugKillerVisible] = useState(false);
-  /* Change 5/6: separate "gameOver" (all killed) vs "exitScore" (user exited) */
-  const [gameOver, setGameOver] = useState(false); // all bugs killed
-  const [exitScore, setExitScore] = useState(null); // user pressed EXIT — holds score value
+  const [gameOver, setGameOver] = useState(false);
+  const [exitScore, setExitScore] = useState(null);
 
   /* ── Parallax motion ── */
   const rawX = useMotionValue(0);
@@ -523,7 +590,6 @@ export default function HeroSection() {
     setScore((prev) => prev + 1);
   }, []);
 
-  /* All bugs killed naturally */
   const handleAllBugsKilled = useCallback((killedCount) => {
     setBugKillerVisible(false);
     setGameOver(true);
@@ -536,10 +602,9 @@ export default function HeroSection() {
     }, 3500);
   }, []);
 
-  /* Change 4 & 5: user clicks EXIT */
   const handleExit = useCallback(() => {
     setBugKillerVisible(false);
-    setExitScore(score); // snapshot current score for big display
+    setExitScore(score);
     setGameOver(false);
     setTimeout(() => {
       setGameMode(false);
@@ -549,7 +614,6 @@ export default function HeroSection() {
     }, 3000);
   }, [score]);
 
-  /* Hide default cursor in game mode */
   useEffect(() => {
     document.body.style.cursor = gameMode ? "none" : "";
     return () => {
@@ -558,318 +622,318 @@ export default function HeroSection() {
   }, [gameMode]);
 
   return (
-    <section
-      id="hero"
-      ref={sectionRef}
-      className="relative overflow-hidden border-b border-line"
-      style={{ perspective: "1200px" }}
-    >
-      {/* Bug killer custom cursor */}
-      <BugKillerCursor visible={bugKillerVisible} />
-
-      {/* Change 1: Score board drops from top-center, replacing hanging button */}
-      <AnimatePresence>
-        {gameMode && (
-          <ScoreBoard score={score} total={totalBugs} onExit={handleExit} />
-        )}
-      </AnimatePresence>
-
-      {/* Change 6: All-bugs-killed banner — strong dark shadow so score is readable */}
-      <AnimatePresence>
-        {gameOver && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 99998,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              pointerEvents: "none",
-              background: "rgba(13,12,10,0.55)",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: "'Pixelify Sans', monospace",
-                fontSize: "clamp(32px, 6vw, 80px)",
-                fontWeight: "bold",
-                color: "#C4501A",
-                /* Change 6: layered shadows for crisp legibility */
-                textShadow:
-                  "2px 2px 0 #0D0C0A, 4px 4px 0 #0D0C0A, 6px 6px 0 #0D0C0A, 0 0 40px rgba(196,80,26,0.9), 0 0 80px rgba(196,80,26,0.5)",
-                letterSpacing: "4px",
-                textAlign: "center",
-                padding: "0 24px",
-              }}
-            >
-              BUGS REMOVED!
-              <div
-                style={{
-                  fontSize: "0.38em",
-                  marginTop: 12,
-                  color: "#F5F2EB",
-                  textShadow:
-                    "1px 1px 0 #0D0C0A, 3px 3px 0 #0D0C0A, 0 0 20px rgba(0,0,0,0.9)",
-                  letterSpacing: "3px",
-                }}
-              >
-                {score} / {totalBugs} SQUASHED
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Change 5: Exit score display */}
-      <AnimatePresence>
-        {exitScore !== null && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.75 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 99998,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              pointerEvents: "none",
-              background: "rgba(13,12,10,0.60)",
-            }}
-          >
-            <div style={{ textAlign: "center", padding: "0 24px" }}>
-              <div
-                style={{
-                  fontFamily: "'Pixelify Sans', monospace",
-                  fontSize: "clamp(11px, 1.4vw, 18px)",
-                  letterSpacing: "4px",
-                  color: "#F5F2EB",
-                  textShadow: "1px 1px 0 #0D0C0A, 3px 3px 0 #0D0C0A",
-                  opacity: 0.7,
-                  marginBottom: 10,
-                }}
-              >
-                GAME OVER
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Pixelify Sans', monospace",
-                  fontSize: "clamp(56px, 12vw, 140px)",
-                  fontWeight: "bold",
-                  color: "#C4501A",
-                  lineHeight: 1,
-                  textShadow:
-                    "3px 3px 0 #0D0C0A, 6px 6px 0 #0D0C0A, 9px 9px 0 #0D0C0A, 0 0 50px rgba(196,80,26,0.8)",
-                  letterSpacing: "-2px",
-                }}
-              >
-                {exitScore}
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Courier New', monospace",
-                  fontSize: "clamp(10px, 1.2vw, 14px)",
-                  letterSpacing: "3px",
-                  color: "#F5F2EB",
-                  textShadow: "1px 1px 0 #0D0C0A, 2px 2px 0 #0D0C0A",
-                  opacity: 0.55,
-                  marginTop: 8,
-                }}
-              >
-                BUGS KILLED
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Noise texture overlay */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          zIndex: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "repeat",
-          backgroundSize: "180px 180px",
-          opacity: 0.028,
-        }}
-      />
-
-      {/* Hanging button (hidden when game mode active) */}
+    <div style={{ position: "relative" }}>
+      {/* HangingButton is OUTSIDE overflow-hidden section so bounce never clips */}
       <HangingButton onClick={handleRemoveBugs} pulled={buttonPulled} />
 
-      {/* ═══ DESKTOP: Top bar ═══ */}
-      <div
-        className="hidden md:flex absolute top-[120px] left-12 right-12 items-start justify-between"
-        style={{ zIndex: 5, pointerEvents: "none" }}
+      <section
+        id="hero"
+        ref={sectionRef}
+        className="relative overflow-hidden border-b border-line"
+        style={{ perspective: "1200px" }}
       >
-        <span className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase">
-          [01] — Portfolio 2025
-        </span>
-        <ScrollReveal delay={0.2}>
-          <div className="max-w-[340px] text-right text-[12px] text-ink-3 leading-[1.7] font-mono font-light">
-            {SITE_CONFIG.heroDescription}
-          </div>
-        </ScrollReveal>
-      </div>
+        {/* Bug killer custom cursor */}
+        <BugKillerCursor visible={bugKillerVisible} />
 
-      {/* ═══ DESKTOP: Pixel canvas ═══ */}
-      <motion.div
-        className="hidden md:block absolute select-none"
-        style={{
-          bottom: 0,
-          right: 0,
-          width: "clamp(240px, 35vw, 500px)",
-          height: "100vh",
-          zIndex: gameMode ? 10 : 1,
-          x: gameMode ? 0 : imgX,
-          y: gameMode ? 0 : imgY,
-        }}
-      >
-        <PixelCanvas
-          ref={pixelCanvasRef}
-          src="/logo_2.png"
-          pixelSize={4}
-          anchor="bottom-center"
-          gameMode={gameMode}
-          onBugKilled={handleBugKilled}
-          onAllBugsKilled={handleAllBugsKilled}
-          onBugsSpawned={handleBugsSpawned}
-        />
-      </motion.div>
+        {/* Score board */}
+        <AnimatePresence>
+          {gameMode && (
+            <ScoreBoard score={score} total={totalBugs} onExit={handleExit} />
+          )}
+        </AnimatePresence>
 
-      {/* ═══ CONTENT WRAPPER ═══ */}
-      <div className="relative flex flex-col min-h-screen">
-        {/* Mobile top info */}
-        <div className="md:hidden pt-24 px-6 space-y-2">
-          <span className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase block">
-            [01] — Portfolio 2025
-          </span>
-          <div className="text-[12px] text-ink-3 leading-[1.7] font-mono font-light max-w-[320px]">
-            {SITE_CONFIG.heroDescription}
-          </div>
-        </div>
-
-        <div className="flex-1 min-h-6 md:min-h-0" />
-
-        {/* ── Heading ── */}
-        <motion.h1
-          className="font-playfair font-bold leading-[0.95] mb-6 md:mb-12 px-6 sm:px-8 md:px-12 md:max-w-[55%]"
-          style={{
-            fontSize: "clamp(46px, 11vw, 148px)",
-            letterSpacing: "clamp(-2px, -0.4vw, -5px)",
-            position: "relative",
-            zIndex: 3,
-            rotateX: h1RotateX,
-            rotateY: h1RotateY,
-            transformStyle: "preserve-3d",
-            pointerEvents: "none",
-            textShadow: `1px 1px 0px rgba(0,0,0,0.06), 2px 2px 0px rgba(0,0,0,0.05), 4px 4px 0px rgba(0,0,0,0.04), 8px 8px 0px rgba(0,0,0,0.03), 14px 14px 28px rgba(0,0,0,0.08)`,
-          }}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-        >
-          I build
-          <br />
-          <em
-            className="italic font-pixelify"
-            style={{
-              display: "inline-block",
-              color: "var(--color-accent)",
-              textShadow: `1px 1px 0px rgba(0,0,0,0.08), 3px 3px 0px rgba(0,0,0,0.06), 6px 6px 0px rgba(0,0,0,0.05), 10px 10px 0px rgba(0,0,0,0.04), 18px 18px 32px rgba(0,0,0,0.12)`,
-              transform: "translateZ(20px) scale(1.01)",
-              transformStyle: "preserve-3d",
-            }}
-          >
-            digital
-          </em>
-          <br />
-          products.
-        </motion.h1>
-
-        {/* ── Mobile pixel image ── */}
-        <div
-          className="block md:hidden mx-auto mb-6"
-          style={{
-            width: "min(85vw, 380px)",
-            aspectRatio: "3 / 4",
-            position: "relative",
-            zIndex: 2,
-          }}
-        >
-          <PixelCanvas src="/logo_2.png" anchor="center" gameMode={false} />
-        </div>
-
-        {/* ── Tags + CTA ── */}
-        <motion.div
-          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 sm:gap-4 px-6 sm:px-8 md:px-12 pb-10 md:pb-16"
-          style={{
-            position: "relative",
-            zIndex: 4,
-            x: tagsX,
-            y: tagsY,
-            pointerEvents: "none",
-          }}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.5 }}
-        >
-          <div
-            className="flex gap-2 flex-wrap"
-            style={{
-              width: "fit-content",
-              maxWidth: "100%",
-              pointerEvents: "auto",
-            }}
-          >
-            {SITE_CONFIG.heroTags.map((tag, idx) => (
-              <motion.div
-                key={tag}
+        {/* All-bugs-killed banner */}
+        <AnimatePresence>
+          {gameOver && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.1 }}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 99998,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                pointerEvents: "none",
+                background: "rgba(13,12,10,0.55)",
+              }}
+            >
+              <div
                 style={{
-                  display: "inline-block",
-                  boxShadow: `0 ${2 + idx}px ${6 + idx * 2}px rgba(0,0,0,${0.06 + idx * 0.01})`,
-                  borderRadius: "9999px",
-                  transform: `translateZ(${idx * 2}px)`,
-                }}
-                whileHover={{
-                  y: -3,
-                  boxShadow: `0 8px 20px rgba(0,0,0,0.12)`,
-                  transition: { duration: 0.2 },
+                  fontFamily: "'Pixelify Sans', monospace",
+                  fontSize: "clamp(32px, 6vw, 80px)",
+                  fontWeight: "bold",
+                  color: "#C4501A",
+                  textShadow:
+                    "2px 2px 0 #0D0C0A, 4px 4px 0 #0D0C0A, 6px 6px 0 #0D0C0A, 0 0 40px rgba(196,80,26,0.9), 0 0 80px rgba(196,80,26,0.5)",
+                  letterSpacing: "4px",
+                  textAlign: "center",
+                  padding: "0 24px",
                 }}
               >
-                <Tag>{tag}</Tag>
-              </motion.div>
-            ))}
+                BUGS REMOVED!
+                <div
+                  style={{
+                    fontSize: "0.38em",
+                    marginTop: 12,
+                    color: "#F5F2EB",
+                    textShadow:
+                      "1px 1px 0 #0D0C0A, 3px 3px 0 #0D0C0A, 0 0 20px rgba(0,0,0,0.9)",
+                    letterSpacing: "3px",
+                  }}
+                >
+                  {score} / {totalBugs} SQUASHED
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Exit score display */}
+        <AnimatePresence>
+          {exitScore !== null && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.75 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.1 }}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 99998,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                pointerEvents: "none",
+                background: "rgba(13,12,10,0.60)",
+              }}
+            >
+              <div style={{ textAlign: "center", padding: "0 24px" }}>
+                <div
+                  style={{
+                    fontFamily: "'Pixelify Sans', monospace",
+                    fontSize: "clamp(11px, 1.4vw, 18px)",
+                    letterSpacing: "4px",
+                    color: "#F5F2EB",
+                    textShadow: "1px 1px 0 #0D0C0A, 3px 3px 0 #0D0C0A",
+                    opacity: 0.7,
+                    marginBottom: 10,
+                  }}
+                >
+                  GAME OVER
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Pixelify Sans', monospace",
+                    fontSize: "clamp(56px, 12vw, 140px)",
+                    fontWeight: "bold",
+                    color: "#C4501A",
+                    lineHeight: 1,
+                    textShadow:
+                      "3px 3px 0 #0D0C0A, 6px 6px 0 #0D0C0A, 9px 9px 0 #0D0C0A, 0 0 50px rgba(196,80,26,0.8)",
+                    letterSpacing: "-2px",
+                  }}
+                >
+                  {exitScore}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Courier New', monospace",
+                    fontSize: "clamp(10px, 1.2vw, 14px)",
+                    letterSpacing: "3px",
+                    color: "#F5F2EB",
+                    textShadow: "1px 1px 0 #0D0C0A, 2px 2px 0 #0D0C0A",
+                    opacity: 0.55,
+                    marginTop: 8,
+                  }}
+                >
+                  BUGS KILLED
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Noise texture overlay */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            zIndex: 0,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "repeat",
+            backgroundSize: "180px 180px",
+            opacity: 0.028,
+          }}
+        />
+
+        {/* ═══ DESKTOP: Top bar ═══ */}
+        <div
+          className="hidden md:flex absolute top-[120px] left-12 right-12 items-start justify-between"
+          style={{ zIndex: 5, pointerEvents: "none" }}
+        >
+          <span className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase">
+            [01] — Portfolio 2025
+          </span>
+          <ScrollReveal delay={0.2}>
+            <div className="max-w-[340px] text-right text-[12px] text-ink-3 leading-[1.7] font-mono font-light">
+              {SITE_CONFIG.heroDescription}
+            </div>
+          </ScrollReveal>
+        </div>
+
+        {/* ═══ DESKTOP: Pixel canvas ═══ */}
+        <motion.div
+          className="hidden md:block absolute select-none"
+          style={{
+            bottom: 0,
+            right: 0,
+            width: "clamp(240px, 35vw, 500px)",
+            height: "100vh",
+            zIndex: gameMode ? 10 : 1,
+            x: gameMode ? 0 : imgX,
+            y: gameMode ? 0 : imgY,
+          }}
+        >
+          <PixelCanvas
+            ref={pixelCanvasRef}
+            src="/logo_2.png"
+            pixelSize={4}
+            anchor="bottom-center"
+            gameMode={gameMode}
+            onBugKilled={handleBugKilled}
+            onAllBugsKilled={handleAllBugsKilled}
+            onBugsSpawned={handleBugsSpawned}
+          />
+        </motion.div>
+
+        {/* ═══ CONTENT WRAPPER ═══ */}
+        <div className="relative flex flex-col min-h-screen">
+          {/* Mobile top info */}
+          <div className="md:hidden pt-24 px-6 space-y-2">
+            <span className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase block">
+              [01] — Portfolio 2025
+            </span>
+            <div className="text-[12px] text-ink-3 leading-[1.7] font-mono font-light max-w-[320px]">
+              {SITE_CONFIG.heroDescription}
+            </div>
           </div>
 
-          {/* Change 7: RESUME button — orange bg, black text */}
-          <div
+          <div className="flex-1 min-h-6 md:min-h-0" />
+
+          {/* ── Heading ── */}
+          <motion.h1
+            className="font-playfair font-bold leading-[0.95] mb-6 md:mb-12 px-6 sm:px-8 md:px-12 md:max-w-[55%]"
             style={{
-              width: "fit-content",
-              flexShrink: 0,
-              pointerEvents: "auto",
-              overflow: "visible",
+              fontSize: "clamp(46px, 11vw, 148px)",
+              letterSpacing: "clamp(-2px, -0.4vw, -5px)",
+              position: "relative",
+              zIndex: 3,
+              rotateX: h1RotateX,
+              rotateY: h1RotateY,
+              transformStyle: "preserve-3d",
+              pointerEvents: "none",
+              textShadow: `1px 1px 0px rgba(0,0,0,0.06), 2px 2px 0px rgba(0,0,0,0.05), 4px 4px 0px rgba(0,0,0,0.04), 8px 8px 0px rgba(0,0,0,0.03), 14px 14px 28px rgba(0,0,0,0.08)`,
+            }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+          >
+            I build
+            <br />
+            <em
+              className="italic font-pixelify"
+              style={{
+                display: "inline-block",
+                color: "var(--color-accent)",
+                textShadow: `1px 1px 0px rgba(0,0,0,0.08), 3px 3px 0px rgba(0,0,0,0.06), 6px 6px 0px rgba(0,0,0,0.05), 10px 10px 0px rgba(0,0,0,0.04), 18px 18px 32px rgba(0,0,0,0.12)`,
+                transform: "translateZ(20px) scale(1.01)",
+                transformStyle: "preserve-3d",
+              }}
+            >
+              digital
+            </em>
+            <br />
+            products.
+          </motion.h1>
+
+          {/* ── Mobile pixel image ── */}
+          <div
+            className="block md:hidden mx-auto mb-6"
+            style={{
+              width: "min(85vw, 380px)",
+              aspectRatio: "3 / 4",
+              position: "relative",
+              zIndex: 2,
             }}
           >
-            <PixelButton
-              href="#projects"
-              pixelSize={6}
-              style={{ background: "#C4501A", color: "#0D0C0A" }}
-            >
-              <span style={{ color: "#0D0C0A", fontWeight: "bold" }}>
-                RESUME
-              </span>
-            </PixelButton>
+            <PixelCanvas src="/logo_2.png" anchor="center" gameMode={false} />
           </div>
-        </motion.div>
-      </div>
-    </section>
+
+          {/* ── Tags + CTA ── */}
+          <motion.div
+            className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 sm:gap-4 px-6 sm:px-8 md:px-12 pb-10 md:pb-16"
+            style={{
+              position: "relative",
+              zIndex: 4,
+              x: tagsX,
+              y: tagsY,
+              pointerEvents: "none",
+            }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.5 }}
+          >
+            <div
+              className="flex gap-2 flex-wrap"
+              style={{
+                width: "fit-content",
+                maxWidth: "100%",
+                pointerEvents: "auto",
+              }}
+            >
+              {SITE_CONFIG.heroTags.map((tag, idx) => (
+                <motion.div
+                  key={tag}
+                  style={{
+                    display: "inline-block",
+                    boxShadow: `0 ${2 + idx}px ${6 + idx * 2}px rgba(0,0,0,${0.06 + idx * 0.01})`,
+                    borderRadius: "9999px",
+                    transform: `translateZ(${idx * 2}px)`,
+                  }}
+                  whileHover={{
+                    y: -3,
+                    boxShadow: `0 8px 20px rgba(0,0,0,0.12)`,
+                    transition: { duration: 0.2 },
+                  }}
+                >
+                  <Tag>{tag}</Tag>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* ── RESUME button — orange bg, dark text ── */}
+            <div
+              style={{
+                width: "fit-content",
+                flexShrink: 0,
+                pointerEvents: "auto",
+                overflow: "visible",
+              }}
+            >
+              <PixelButton
+                href="#projects"
+                pixelSize={6}
+                bgColor="#C4501A"
+                textColor="#0D0C0A"
+              >
+                RESUME
+              </PixelButton>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    </div>
   );
 }
