@@ -44,7 +44,7 @@ export default function PixelCanvas({
 
         /* Flight heading & speed */
         heading: Math.random() * Math.PI * 2,
-        speed: 0.5 + Math.random() * 1.0,
+        speed: 0.5 + Math.random() * 5.0,
 
         /* ── Natural flight state machine ──
            States: 'glide' | 'burst' | 'hover' | 'turn'
@@ -70,7 +70,7 @@ export default function PixelCanvas({
 
         /* Wing flap — asymmetric, irregular timing */
         flapPhase: Math.random() * Math.PI * 2,
-        flapSpeed: 0.006 + Math.random() * 0.006, // varies per butterfly
+        flapSpeed: 0.006 + Math.random() * 0.06, // varies per butterfly
         flapSkip: 0, // occasional "skip" mid-flap for realism
         flapSkipTimer: 0,
         wingSize: 10 + Math.random() * 14,
@@ -273,9 +273,9 @@ export default function PixelCanvas({
       const VEL_THRESHOLD = 0.15;
       const SPRING = 0.08;
       const DAMPING = 0.88;
-      const BF_MORPH_SPRING = 0.012;
+      const BF_MORPH_SPRING = 0.0009;
       const BF_MORPH_DAMPING = 0.94;
-      const REASSEMBLE_SPRING = 0.008;
+      const REASSEMBLE_SPRING = 0.0009;
       const REASSEMBLE_DAMPING = 0.965;
 
       const frameData = ctx.createImageData(W, H);
