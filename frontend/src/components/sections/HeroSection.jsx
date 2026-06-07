@@ -1,15 +1,473 @@
-import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { useEffect, useRef } from "react";
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  useSpring,
+  AnimatePresence,
+} from "framer-motion";
+import { useEffect, useRef, useState, useCallback } from "react";
 import ScrollReveal from "../common/ScrollReveal";
 import PixelButton from "../ui/PixelButton";
 import Tag from "../ui/Tag";
 import PixelCanvas from "../ui/PixelCanvas";
 import { SITE_CONFIG } from "../../constants/data";
 
+/* ── Score Board (replaces top-right HUD, drops in from top center) ───────── */
+function ScoreBoard({ score, total, onExit }) {
+  const pct = total > 0 ? Math.min(1, score / total) : 0;
+
+  return (
+    <motion.div
+      initial={{ y: -160, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -160, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 220, damping: 22 }}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 200,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        pointerEvents: "auto",
+        /* Board styling */
+        background: "#0D0C0A",
+        border: "2px solid #C4501A",
+        borderTop: "none",
+        borderRadius: "0 0 8px 8px",
+        padding: "14px 28px 12px",
+        boxShadow:
+          "0 8px 40px rgba(196,80,26,0.35), inset 0 0 16px rgba(0,0,0,0.6)",
+        minWidth: 220,
+      }}
+    >
+      {/* Notch at the top suggesting the string connects here */}
+      <div
+        style={{
+          position: "absolute",
+          top: -1,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 32,
+          height: 4,
+          background: "#8B6914",
+          borderRadius: "0 0 4px 4px",
+        }}
+      />
+
+      {/* Label */}
+      <div
+        style={{
+          fontFamily: "'Pixelify Sans', monospace",
+          fontSize: 14,
+          letterSpacing: "3px",
+          color: "#C4501A",
+          textTransform: "uppercase",
+          opacity: 0.65,
+          marginBottom: 6,
+        }}
+      >
+        BUGS KILLED
+      </div>
+
+      {/* Score digits */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
+        {String(score)
+          .padStart(4, "0")
+          .split("")
+          .map((d, i) => (
+            <motion.span
+              key={`${i}-${d}`}
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              style={{
+                fontFamily: "'Courier New', monospace",
+                fontWeight: "bold",
+                fontSize: 32,
+                color: "#C4501A",
+                textShadow: "0 0 10px rgba(196,80,26,0.9)",
+                display: "inline-block",
+                width: 20,
+                textAlign: "center",
+                lineHeight: 1,
+              }}
+            >
+              {d}
+            </motion.span>
+          ))}
+      </div>
+
+      {/* Progress bar */}
+      <div
+        style={{
+          width: "100%",
+          height: 8,
+          background: "#1e1c1a",
+          borderRadius: 4,
+          border: "1px solid #C4501A44",
+          overflow: "hidden",
+          marginBottom: 10,
+        }}
+      >
+        <motion.div
+          animate={{ width: `${pct * 100}%` }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          style={{
+            height: "100%",
+            background:
+              "linear-gradient(90deg, #C4501A 0%, #e8682a 60%, #ff8c50 100%)",
+            borderRadius: 4,
+            boxShadow: "0 0 8px rgba(196,80,26,0.7)",
+          }}
+        />
+      </div>
+
+      {/* Count label */}
+      <div
+        style={{
+          fontFamily: "'Courier New', monospace",
+          fontSize: 14,
+          color: "#C4501A",
+          opacity: 0.55,
+          marginBottom: 12,
+          letterSpacing: "1px",
+        }}
+      >
+        {score} / {total}
+      </div>
+
+      {/* Exit button */}
+      <button
+        onClick={onExit}
+        style={{
+          fontFamily: "'Pixelify Sans', 'Courier New', monospace",
+          fontSize: 10,
+          letterSpacing: "2px",
+          color: "#F5F2EB",
+          background: "transparent",
+          border: "1px solid #C4501A66",
+          borderRadius: 3,
+          padding: "5px 14px",
+          cursor: "pointer",
+          outline: "none",
+          opacity: 0.7,
+          transition: "opacity 0.15s, border-color 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.opacity = "1";
+          e.currentTarget.style.borderColor = "#C4501A";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.opacity = "0.7";
+          e.currentTarget.style.borderColor = "#C4501A66";
+        }}
+      >
+        ✕ EXIT GAME
+      </button>
+    </motion.div>
+  );
+}
+
+/* ── Flyswatter Cursor ────────────────────────────────────────────────────── */
+function BugKillerCursor({ visible }) {
+  const [pos, setPos] = useState({ x: -200, y: -200 });
+  const [isSwatting, setIsSwatting] = useState(false);
+
+  useEffect(() => {
+    const move = (e) => setPos({ x: e.clientX, y: e.clientY });
+    const down = () => {
+      setIsSwatting(true);
+      setTimeout(() => setIsSwatting(false), 200);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mousedown", down);
+    return () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mousedown", down);
+    };
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ y: 120, opacity: 0, scale: 0.5 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 120, opacity: 0, scale: 0.5 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          style={{
+            position: "fixed",
+            left: pos.x - 20,
+            top: pos.y - 72,
+            zIndex: 99999,
+            pointerEvents: "none",
+            transformOrigin: "center bottom",
+          }}
+        >
+          <SwatterSVG isSwatting={isSwatting} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function SwatterSVG({ isSwatting }) {
+  return (
+    <motion.svg
+      width="52"
+      height="88"
+      viewBox="0 0 52 88"
+      style={{
+        filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.4))",
+        display: "block",
+      }}
+      animate={isSwatting ? { rotate: [0, 30, -12, 0], y: [0, 8, -3, 0] } : {}}
+      transition={{ duration: 0.22 }}
+    >
+      <rect x="23" y="46" width="7" height="42" rx="3.5" fill="#8B4513" />
+      {[52, 58, 64, 70].map((y) => (
+        <line
+          key={y}
+          x1="23"
+          y1={y}
+          x2="30"
+          y2={y}
+          stroke="#6b3410"
+          strokeWidth="1.5"
+          opacity="0.6"
+        />
+      ))}
+      <rect
+        x="4"
+        y="4"
+        width="44"
+        height="44"
+        rx="7"
+        fill="rgba(196,80,26,0.10)"
+        stroke="#C4501A"
+        strokeWidth="3"
+      />
+      {[13, 22, 31, 40].map((x) => (
+        <line
+          key={`v${x}`}
+          x1={x}
+          y1="4"
+          x2={x}
+          y2="48"
+          stroke="#C4501A"
+          strokeWidth="1.2"
+          opacity="0.55"
+        />
+      ))}
+      {[13, 22, 31, 40].map((y) => (
+        <line
+          key={`h${y}`}
+          x1="4"
+          y1={y}
+          x2="48"
+          y2={y}
+          stroke="#C4501A"
+          strokeWidth="1.2"
+          opacity="0.55"
+        />
+      ))}
+      <circle cx="4" cy="4" r="2.5" fill="#C4501A" />
+      <circle cx="48" cy="4" r="2.5" fill="#C4501A" />
+      <circle cx="4" cy="48" r="2.5" fill="#C4501A" />
+      <circle cx="48" cy="48" r="2.5" fill="#C4501A" />
+      {isSwatting && (
+        <rect
+          x="4"
+          y="4"
+          width="44"
+          height="44"
+          rx="7"
+          fill="rgba(196,80,26,0.25)"
+        />
+      )}
+    </motion.svg>
+  );
+}
+
+/* ── Hanging String + Button ──────────────────────────────────────────────── */
+/* Change 2: no mouse-sway animation; Change 3: bouncing drop-in animation    */
+function HangingButton({ onClick, pulled }) {
+  const [hovered, setHovered] = useState(false);
+  const STRING_LEN = 130;
+
+  /* Static straight string path — no mouse wobble */
+  const buildStringPath = () => {
+    const cx = 90;
+    const points = [];
+    const NUM_POINTS = 12;
+    for (let i = 0; i <= NUM_POINTS; i++) {
+      const t = i / NUM_POINTS;
+      /* Slight natural droop only, no mouse influence */
+      const droop = t * t * 6;
+      points.push({ x: cx + droop * 0.5, y: t * STRING_LEN + droop });
+    }
+    return (
+      "M " +
+      points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L ")
+    );
+  };
+
+  const stringPath = buildStringPath();
+  /* Button top-center aligns with string tip */
+  const tipX = 90 + 0.5 * 6; /* droop at t=1 */
+  const tipY = STRING_LEN + 6;
+
+  return (
+    <AnimatePresence>
+      {!pulled && (
+        /* Change 3: spring bounce drop-in from above */
+        <motion.div
+          initial={{ y: -220, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{
+            y: -280,
+            opacity: 0,
+            transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 160,
+            damping: 12 /* low damping = more bounce */,
+            mass: 1.2,
+            delay: 0.6,
+          }}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 20,
+            pointerEvents: "none",
+            width: 180,
+          }}
+        >
+          {/* String SVG */}
+          <svg
+            width="180"
+            height={STRING_LEN + 10}
+            style={{
+              overflow: "visible",
+              pointerEvents: "none",
+              display: "block",
+            }}
+          >
+            <path
+              d={stringPath}
+              fill="none"
+              stroke="rgba(0,0,0,0.15)"
+              strokeWidth="3"
+              strokeLinecap="round"
+              transform="translate(1,1)"
+            />
+            <path
+              d={stringPath}
+              fill="none"
+              stroke="#8B6914"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <path
+              d={stringPath}
+              fill="none"
+              stroke="rgba(255,220,100,0.3)"
+              strokeWidth="1"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          {/* Button — absolutely positioned at string tip */}
+          <motion.button
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            onClick={onClick}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.93, y: 3 }}
+            style={{
+              position: "absolute",
+              left: tipX - 70,
+              top: tipY - 2,
+              pointerEvents: "auto",
+              fontFamily: "'Pixelify Sans', 'Courier New', monospace",
+              fontSize: 13,
+              fontWeight: "bold",
+              letterSpacing: "1.5px",
+              color: "#F5F2EB",
+              background: "#0D0C0A",
+              border: "2px solid #C4501A",
+              borderRadius: 4,
+              padding: "10px 20px",
+              cursor: "pointer",
+              outline: "none",
+              boxShadow: hovered
+                ? "0 0 20px rgba(196,80,26,0.6), 0 4px 0 #6b200a, inset 0 0 8px rgba(196,80,26,0.1)"
+                : "0 4px 0 #6b200a, 0 6px 16px rgba(0,0,0,0.4)",
+              transition: "box-shadow 0.2s",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {/* Pixel corner accents */}
+            {[
+              { top: -1, left: -1 },
+              { top: -1, right: -1 },
+              { bottom: -1, left: -1 },
+              { bottom: -1, right: -1 },
+            ].map((s, i) => (
+              <span
+                key={i}
+                style={{
+                  position: "absolute",
+                  width: 4,
+                  height: 4,
+                  background: "#C4501A",
+                  ...s,
+                }}
+              />
+            ))}
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              REMOVE BUGS
+            </span>
+            {hovered && (
+              <span
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: 3,
+                  background:
+                    "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(196,80,26,0.04) 2px, rgba(196,80,26,0.04) 4px)",
+                  pointerEvents: "none",
+                }}
+              />
+            )}
+          </motion.button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ── Main HeroSection ─────────────────────────────────────────────────────── */
 export default function HeroSection() {
   const sectionRef = useRef(null);
+  const pixelCanvasRef = useRef(null);
+  const [gameMode, setGameMode] = useState(false);
+  const [score, setScore] = useState(0);
+  const [totalBugs, setTotalBugs] = useState(0);
+  const [buttonPulled, setButtonPulled] = useState(false);
+  const [bugKillerVisible, setBugKillerVisible] = useState(false);
+  /* Change 5/6: separate "gameOver" (all killed) vs "exitScore" (user exited) */
+  const [gameOver, setGameOver] = useState(false); // all bugs killed
+  const [exitScore, setExitScore] = useState(null); // user pressed EXIT — holds score value
 
-  /* ── Parallax motion (desktop only) ── */
+  /* ── Parallax motion ── */
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const springConfig = { stiffness: 60, damping: 20, mass: 1 };
@@ -27,6 +485,7 @@ export default function HeroSection() {
     const section = sectionRef.current;
     if (!section) return;
     const handleMouseMove = (e) => {
+      if (gameMode) return;
       const rect = section.getBoundingClientRect();
       rawX.set((e.clientX - (rect.left + rect.width / 2)) / rect.width);
       rawY.set((e.clientY - (rect.top + rect.height / 2)) / rect.height);
@@ -41,7 +500,62 @@ export default function HeroSection() {
       section.removeEventListener("mousemove", handleMouseMove);
       section.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [rawX, rawY]);
+  }, [rawX, rawY, gameMode]);
+
+  const handleBugsSpawned = useCallback((count) => {
+    setTotalBugs(count);
+  }, []);
+
+  const handleRemoveBugs = useCallback(() => {
+    setButtonPulled(true);
+    setScore(0);
+    setGameOver(false);
+    setExitScore(null);
+    setTotalBugs(0);
+    setTimeout(() => {
+      setGameMode(true);
+      pixelCanvasRef.current?.triggerGameBugs();
+      setBugKillerVisible(true);
+    }, 400);
+  }, []);
+
+  const handleBugKilled = useCallback(() => {
+    setScore((prev) => prev + 1);
+  }, []);
+
+  /* All bugs killed naturally */
+  const handleAllBugsKilled = useCallback((killedCount) => {
+    setBugKillerVisible(false);
+    setGameOver(true);
+    if (killedCount != null) setScore(killedCount);
+    setTimeout(() => {
+      setGameMode(false);
+      setButtonPulled(false);
+      setScore(0);
+      setGameOver(false);
+    }, 3500);
+  }, []);
+
+  /* Change 4 & 5: user clicks EXIT */
+  const handleExit = useCallback(() => {
+    setBugKillerVisible(false);
+    setExitScore(score); // snapshot current score for big display
+    setGameOver(false);
+    setTimeout(() => {
+      setGameMode(false);
+      setButtonPulled(false);
+      setScore(0);
+      setExitScore(null);
+    }, 3000);
+  }, [score]);
+
+  /* Hide default cursor in game mode */
+  useEffect(() => {
+    document.body.style.cursor = gameMode ? "none" : "";
+    return () => {
+      document.body.style.cursor = "";
+    };
+  }, [gameMode]);
 
   return (
     <section
@@ -50,6 +564,130 @@ export default function HeroSection() {
       className="relative overflow-hidden border-b border-line"
       style={{ perspective: "1200px" }}
     >
+      {/* Bug killer custom cursor */}
+      <BugKillerCursor visible={bugKillerVisible} />
+
+      {/* Change 1: Score board drops from top-center, replacing hanging button */}
+      <AnimatePresence>
+        {gameMode && (
+          <ScoreBoard score={score} total={totalBugs} onExit={handleExit} />
+        )}
+      </AnimatePresence>
+
+      {/* Change 6: All-bugs-killed banner — strong dark shadow so score is readable */}
+      <AnimatePresence>
+        {gameOver && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1 }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 99998,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              pointerEvents: "none",
+              background: "rgba(13,12,10,0.55)",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "'Pixelify Sans', monospace",
+                fontSize: "clamp(32px, 6vw, 80px)",
+                fontWeight: "bold",
+                color: "#C4501A",
+                /* Change 6: layered shadows for crisp legibility */
+                textShadow:
+                  "2px 2px 0 #0D0C0A, 4px 4px 0 #0D0C0A, 6px 6px 0 #0D0C0A, 0 0 40px rgba(196,80,26,0.9), 0 0 80px rgba(196,80,26,0.5)",
+                letterSpacing: "4px",
+                textAlign: "center",
+                padding: "0 24px",
+              }}
+            >
+              BUGS REMOVED!
+              <div
+                style={{
+                  fontSize: "0.38em",
+                  marginTop: 12,
+                  color: "#F5F2EB",
+                  textShadow:
+                    "1px 1px 0 #0D0C0A, 3px 3px 0 #0D0C0A, 0 0 20px rgba(0,0,0,0.9)",
+                  letterSpacing: "3px",
+                }}
+              >
+                {score} / {totalBugs} SQUASHED
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Change 5: Exit score display */}
+      <AnimatePresence>
+        {exitScore !== null && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.75 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1 }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 99998,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              pointerEvents: "none",
+              background: "rgba(13,12,10,0.60)",
+            }}
+          >
+            <div style={{ textAlign: "center", padding: "0 24px" }}>
+              <div
+                style={{
+                  fontFamily: "'Pixelify Sans', monospace",
+                  fontSize: "clamp(11px, 1.4vw, 18px)",
+                  letterSpacing: "4px",
+                  color: "#F5F2EB",
+                  textShadow: "1px 1px 0 #0D0C0A, 3px 3px 0 #0D0C0A",
+                  opacity: 0.7,
+                  marginBottom: 10,
+                }}
+              >
+                GAME OVER
+              </div>
+              <div
+                style={{
+                  fontFamily: "'Pixelify Sans', monospace",
+                  fontSize: "clamp(56px, 12vw, 140px)",
+                  fontWeight: "bold",
+                  color: "#C4501A",
+                  lineHeight: 1,
+                  textShadow:
+                    "3px 3px 0 #0D0C0A, 6px 6px 0 #0D0C0A, 9px 9px 0 #0D0C0A, 0 0 50px rgba(196,80,26,0.8)",
+                  letterSpacing: "-2px",
+                }}
+              >
+                {exitScore}
+              </div>
+              <div
+                style={{
+                  fontFamily: "'Courier New', monospace",
+                  fontSize: "clamp(10px, 1.2vw, 14px)",
+                  letterSpacing: "3px",
+                  color: "#F5F2EB",
+                  textShadow: "1px 1px 0 #0D0C0A, 2px 2px 0 #0D0C0A",
+                  opacity: 0.55,
+                  marginTop: 8,
+                }}
+              >
+                BUGS KILLED
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Noise texture overlay */}
       <div
         aria-hidden="true"
@@ -63,9 +701,10 @@ export default function HeroSection() {
         }}
       />
 
-      {/* ═══════════════════════════════════════════════════════
-          DESKTOP: Top bar (absolute, md+ only)
-          ═══════════════════════════════════════════════════════ */}
+      {/* Hanging button (hidden when game mode active) */}
+      <HangingButton onClick={handleRemoveBugs} pulled={buttonPulled} />
+
+      {/* ═══ DESKTOP: Top bar ═══ */}
       <div
         className="hidden md:flex absolute top-[120px] left-12 right-12 items-start justify-between"
         style={{ zIndex: 5, pointerEvents: "none" }}
@@ -80,10 +719,7 @@ export default function HeroSection() {
         </ScrollReveal>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════
-          DESKTOP: Pixel canvas (absolute, md+ only)
-          Pinned bottom-right, sized to fit without cropping
-          ═══════════════════════════════════════════════════════ */}
+      {/* ═══ DESKTOP: Pixel canvas ═══ */}
       <motion.div
         className="hidden md:block absolute select-none"
         style={{
@@ -91,21 +727,26 @@ export default function HeroSection() {
           right: 0,
           width: "clamp(240px, 35vw, 500px)",
           height: "100vh",
-          zIndex: 1,
-          x: imgX,
-          y: imgY,
+          zIndex: gameMode ? 10 : 1,
+          x: gameMode ? 0 : imgX,
+          y: gameMode ? 0 : imgY,
         }}
       >
-        <PixelCanvas src="/logo_2.png" pixelSize={4} anchor="bottom-center" />
+        <PixelCanvas
+          ref={pixelCanvasRef}
+          src="/logo_2.png"
+          pixelSize={4}
+          anchor="bottom-center"
+          gameMode={gameMode}
+          onBugKilled={handleBugKilled}
+          onAllBugsKilled={handleAllBugsKilled}
+          onBugsSpawned={handleBugsSpawned}
+        />
       </motion.div>
 
-      {/* ═══════════════════════════════════════════════════════
-          CONTENT WRAPPER — flows naturally, no overlap
-          Desktop: min-h-screen + flex-1 spacer pushes to bottom
-          Mobile:  everything stacks vertically, no absolute
-          ═══════════════════════════════════════════════════════ */}
+      {/* ═══ CONTENT WRAPPER ═══ */}
       <div className="relative flex flex-col min-h-screen">
-        {/* ── Mobile top info (flows in document, NOT absolute) ── */}
+        {/* Mobile top info */}
         <div className="md:hidden pt-24 px-6 space-y-2">
           <span className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase block">
             [01] — Portfolio 2025
@@ -115,7 +756,6 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* Spacer — pushes content to bottom on desktop, collapses on mobile */}
         <div className="flex-1 min-h-6 md:min-h-0" />
 
         {/* ── Heading ── */}
@@ -130,13 +770,7 @@ export default function HeroSection() {
             rotateY: h1RotateY,
             transformStyle: "preserve-3d",
             pointerEvents: "none",
-            textShadow: `
-              1px  1px  0px rgba(0,0,0,0.06),
-              2px  2px  0px rgba(0,0,0,0.05),
-              4px  4px  0px rgba(0,0,0,0.04),
-              8px  8px  0px rgba(0,0,0,0.03),
-              14px 14px 28px rgba(0,0,0,0.08)
-            `,
+            textShadow: `1px 1px 0px rgba(0,0,0,0.06), 2px 2px 0px rgba(0,0,0,0.05), 4px 4px 0px rgba(0,0,0,0.04), 8px 8px 0px rgba(0,0,0,0.03), 14px 14px 28px rgba(0,0,0,0.08)`,
           }}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -145,16 +779,11 @@ export default function HeroSection() {
           I build
           <br />
           <em
-            className="italic text-accent font-pixelify"
+            className="italic font-pixelify"
             style={{
               display: "inline-block",
-              textShadow: `
-                1px  1px  0px rgba(0,0,0,0.08),
-                3px  3px  0px rgba(0,0,0,0.06),
-                6px  6px  0px rgba(0,0,0,0.05),
-                10px 10px 0px rgba(0,0,0,0.04),
-                18px 18px 32px rgba(0,0,0,0.12)
-              `,
+              color: "var(--color-accent)",
+              textShadow: `1px 1px 0px rgba(0,0,0,0.08), 3px 3px 0px rgba(0,0,0,0.06), 6px 6px 0px rgba(0,0,0,0.05), 10px 10px 0px rgba(0,0,0,0.04), 18px 18px 32px rgba(0,0,0,0.12)`,
               transform: "translateZ(20px) scale(1.01)",
               transformStyle: "preserve-3d",
             }}
@@ -165,7 +794,7 @@ export default function HeroSection() {
           products.
         </motion.h1>
 
-        {/* ── Mobile pixel image (flows inline, NOT absolute) ── */}
+        {/* ── Mobile pixel image ── */}
         <div
           className="block md:hidden mx-auto mb-6"
           style={{
@@ -175,7 +804,7 @@ export default function HeroSection() {
             zIndex: 2,
           }}
         >
-          <PixelCanvas src="/logo_2.png" anchor="center" />
+          <PixelCanvas src="/logo_2.png" anchor="center" gameMode={false} />
         </div>
 
         {/* ── Tags + CTA ── */}
@@ -220,6 +849,7 @@ export default function HeroSection() {
             ))}
           </div>
 
+          {/* Change 7: RESUME button — orange bg, black text */}
           <div
             style={{
               width: "fit-content",
@@ -228,9 +858,13 @@ export default function HeroSection() {
               overflow: "visible",
             }}
           >
-            <PixelButton href="#projects" pixelSize={6}>
-              <span className="text-shadow-xl text-shadow-black">
-                View Work
+            <PixelButton
+              href="#projects"
+              pixelSize={6}
+              style={{ background: "#C4501A", color: "#0D0C0A" }}
+            >
+              <span style={{ color: "#0D0C0A", fontWeight: "bold" }}>
+                RESUME
               </span>
             </PixelButton>
           </div>
