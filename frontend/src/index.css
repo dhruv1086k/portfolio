@@ -85,19 +85,30 @@ body {
   overflow-x: hidden;
 }
 
-* {
+*,
+*::before,
+*::after,
+html,
+body,
+canvas,
+input,
+textarea,
+select {
   cursor:
     url("/cursors/arrow.png") 0 0,
-    auto;
+    auto !important;
 }
 
 a,
 button,
-svg,
-[role="button"] {
+[role="button"],
+[style*="cursor: pointer"],
+input[type="submit"],
+input[type="button"],
+label {
   cursor:
     url("/cursors/cursor.png") 0 0,
-    pointer;
+    pointer !important;
 }
 
 /* ── Scroll Progress ── */

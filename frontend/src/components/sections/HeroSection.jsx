@@ -18,153 +18,193 @@ function ScoreBoard({ score, total, onExit }) {
 
   return (
     <motion.div
-      initial={{ y: -160, opacity: 0 }}
+      initial={{ y: -220, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      exit={{ y: -160, opacity: 0 }}
+      exit={{ y: -220, opacity: 0 }}
       transition={{ type: "spring", stiffness: 220, damping: 22 }}
       style={{
-        position: "absolute",
+        position: "fixed",
         top: 0,
         left: "50%",
         transform: "translateX(-50%)",
-        zIndex: 200,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
+        zIndex: 9999,
         pointerEvents: "auto",
-        background: "#0D0C0A",
-        border: "2px solid #C4501A",
+        background: "#1a0f08",
+        borderLeft: "4px solid #C4501A",
+        borderRight: "4px solid #C4501A",
+        borderBottom: "4px solid #C4501A",
         borderTop: "none",
-        borderRadius: "0 0 8px 8px",
-        padding: "14px 28px 12px",
-        boxShadow:
-          "0 8px 40px rgba(196,80,26,0.35), inset 0 0 16px rgba(0,0,0,0.6)",
-        minWidth: 220,
+        borderRadius: 0,
+        padding: "20px 28px 18px",
+        minWidth: 260,
+        imageRendering: "pixelated",
       }}
     >
-      {/* Notch at the top */}
+      {/* Scanlines */}
       <div
         style={{
           position: "absolute",
-          top: -1,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 32,
-          height: 4,
-          background: "#8B6914",
-          borderRadius: "0 0 4px 4px",
+          inset: 0,
+          backgroundImage:
+            "repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 4px)",
+          pointerEvents: "none",
+          zIndex: 0,
         }}
       />
 
-      {/* Label */}
+      {/* Top accent bar */}
       <div
         style={{
-          fontFamily: "'Pixelify Sans', monospace",
-          fontSize: 14,
-          letterSpacing: "3px",
-          color: "#C4501A",
-          textTransform: "uppercase",
-          opacity: 0.65,
-          marginBottom: 6,
+          position: "absolute",
+          top: 0,
+          left: -4,
+          right: -4,
+          height: 4,
+          background:
+            "repeating-linear-gradient(90deg, #C4501A 0px, #C4501A 8px, #6b200a 8px, #6b200a 12px)",
         }}
-      >
-        BUGS KILLED
-      </div>
+      />
 
-      {/* Score digits */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
-        {String(score)
-          .padStart(4, "0")
-          .split("")
-          .map((d, i) => (
-            <motion.span
-              key={`${i}-${d}`}
-              initial={{ scaleY: 0 }}
-              animate={{ scaleY: 1 }}
-              style={{
-                fontFamily: "'Courier New', monospace",
-                fontWeight: "bold",
-                fontSize: 32,
-                color: "#C4501A",
-                textShadow: "0 0 10px rgba(196,80,26,0.9)",
-                display: "inline-block",
-                width: 20,
-                textAlign: "center",
-                lineHeight: 1,
-              }}
-            >
-              {d}
-            </motion.span>
-          ))}
-      </div>
-
-      {/* Progress bar */}
       <div
         style={{
-          width: "100%",
-          height: 8,
-          background: "#1e1c1a",
-          borderRadius: 4,
-          border: "1px solid #C4501A44",
-          overflow: "hidden",
-          marginBottom: 10,
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 12,
         }}
       >
-        <motion.div
-          animate={{ width: `${pct * 100}%` }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+        {/* Label */}
+        <div
           style={{
-            height: "100%",
-            background:
-              "linear-gradient(90deg, #C4501A 0%, #e8682a 60%, #ff8c50 100%)",
-            borderRadius: 4,
-            boxShadow: "0 0 8px rgba(196,80,26,0.7)",
+            fontFamily: "'Pixelify Sans', monospace",
+            fontSize: 12,
+            letterSpacing: "5px",
+            color: "#ff8c50",
+            textTransform: "uppercase",
           }}
-        />
-      </div>
+        >
+          BUGS KILLED
+        </div>
 
-      {/* Count label */}
-      <div
-        style={{
-          fontFamily: "'Courier New', monospace",
-          fontSize: 14,
-          color: "#C4501A",
-          opacity: 0.55,
-          marginBottom: 12,
-          letterSpacing: "1px",
-        }}
-      >
-        {score} / {total}
-      </div>
+        {/* Score digits */}
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            background: "#0a0705",
+            border: "3px solid #C4501A",
+            padding: "10px 16px",
+            outline: "2px solid #6b200a",
+            outlineOffset: "3px",
+          }}
+        >
+          {String(score)
+            .padStart(4, "0")
+            .split("")
+            .map((d, i) => (
+              <motion.div
+                key={`${i}-${d}`}
+                initial={{ scaleY: 0 }}
+                animate={{ scaleY: 1 }}
+                transition={{ duration: 0.15 }}
+                style={{
+                  fontFamily: "'Pixelify Sans', monospace",
+                  fontWeight: "bold",
+                  fontSize: 48,
+                  lineHeight: 1,
+                  width: 34,
+                  textAlign: "center",
+                  color: score > 0 ? "#ff6b2b" : "#3d1a0a",
+                  textShadow:
+                    score > 0 ? "0 0 8px #ff6b2b, 2px 2px 0 #6b200a" : "none",
+                }}
+              >
+                {d}
+              </motion.div>
+            ))}
+        </div>
 
-      {/* Exit button */}
-      <button
-        onClick={onExit}
-        style={{
-          fontFamily: "'Pixelify Sans', 'Courier New', monospace",
-          fontSize: 10,
-          letterSpacing: "2px",
-          color: "#F5F2EB",
-          background: "transparent",
-          border: "1px solid #C4501A66",
-          borderRadius: 3,
-          padding: "5px 14px",
-          cursor: "pointer",
-          outline: "none",
-          opacity: 0.7,
-          transition: "opacity 0.15s, border-color 0.15s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.opacity = "1";
-          e.currentTarget.style.borderColor = "#C4501A";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.opacity = "0.7";
-          e.currentTarget.style.borderColor = "#C4501A66";
-        }}
-      >
-        ✕ EXIT GAME
-      </button>
+        {/* Segmented progress bar */}
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 3,
+              height: 12,
+              border: "2px solid #C4501A55",
+              padding: 3,
+              background: "#0a0705",
+            }}
+          >
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: 1,
+                  background: i / 24 < pct ? "#C4501A" : "#1f1108",
+                  boxShadow: i / 24 < pct ? "0 0 4px #C4501A88" : "none",
+                  transition: "background 0.1s",
+                }}
+              />
+            ))}
+          </div>
+          <div
+            style={{
+              fontFamily: "'Pixelify Sans', monospace",
+              fontSize: 11,
+              color: "#C4501A",
+              letterSpacing: "3px",
+              textAlign: "center",
+              opacity: 0.8,
+            }}
+          >
+            {score} / {total}
+          </div>
+        </div>
+
+        {/* Exit button */}
+        <button
+          onClick={onExit}
+          style={{
+            fontFamily: "'Pixelify Sans', monospace",
+            fontSize: 11,
+            letterSpacing: "4px",
+            color: "#ff8c50",
+            background: "#0a0705",
+            border: "2px solid #C4501A",
+            borderRadius: 0,
+            padding: "7px 20px",
+            cursor: "pointer",
+            outline: "none",
+            transition: "all 0.1s",
+            textTransform: "uppercase",
+            boxShadow: "3px 3px 0 #6b200a",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#C4501A";
+            e.currentTarget.style.color = "#0a0705";
+            e.currentTarget.style.boxShadow = "none";
+            e.currentTarget.style.transform = "translate(3px, 3px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "#0a0705";
+            e.currentTarget.style.color = "#ff8c50";
+            e.currentTarget.style.boxShadow = "3px 3px 0 #6b200a";
+            e.currentTarget.style.transform = "none";
+          }}
+        >
+          ✕ EXIT GAME
+        </button>
+      </div>
     </motion.div>
   );
 }
@@ -593,6 +633,9 @@ export default function HeroSection() {
     setBugKillerVisible(false);
     setGameOver(true);
     if (killedCount != null) setScore(killedCount);
+
+    pixelCanvasRef.current?.resetGame(); // ← ADD: reassemble immediately
+
     setTimeout(() => {
       setGameMode(false);
       setButtonPulled(false);
@@ -605,6 +648,9 @@ export default function HeroSection() {
     setBugKillerVisible(false);
     setExitScore(score);
     setGameOver(false);
+
+    pixelCanvasRef.current?.resetGame(); // ← ADD: reassemble immediately
+
     setTimeout(() => {
       setGameMode(false);
       setButtonPulled(false);

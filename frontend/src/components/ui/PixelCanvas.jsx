@@ -82,8 +82,21 @@ const PixelCanvas = forwardRef(function PixelCanvas(
       killedCountRef.current = 0;
       triggerBugs(true);
     },
+    resetGame: () => {
+      // ← ADD THIS
+      bugsRef.current = [];
+      phaseRef.current = "reassembling";
+      bugTriggeredRef.current = false;
+      gameModeRef.current = false;
+      cacheValidRef.current = false;
+      // reset all pixel velocities so they spring back cleanly
+      const pixels = pixelsRef.current;
+      for (let i = 0; i < pixels.length; i++) {
+        pixels[i].vx = 0;
+        pixels[i].vy = 0;
+      }
+    },
   }));
-
   useEffect(() => {
     gameModeRef.current = gameMode;
   }, [gameMode]);
