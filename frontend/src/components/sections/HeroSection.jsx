@@ -434,10 +434,9 @@ function HangingButton({ onClick, pulled }) {
             transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
           }}
           transition={{
-            type: "spring",
-            stiffness: 160,
-            damping: 12,
-            mass: 1.2,
+            type: "tween",
+            duration: 1.4,
+            ease: [0.22, 0.0, 0.36, 1.0],
             delay: 0.6,
           }}
           style={{
@@ -858,6 +857,16 @@ export default function HeroSection() {
             products.
           </motion.h1>
 
+          {/* ── RESUME button — orange bg, dark text ── */}
+          {/* <div
+            style={{
+              width: "fit-content",
+              flexShrink: 0,
+              pointerEvents: "auto",
+              overflow: "visible",
+            }}
+          ></div> */}
+
           {/* ── Mobile pixel image ── */}
           <div
             className="block md:hidden mx-auto mb-6"
@@ -911,25 +920,6 @@ export default function HeroSection() {
                   <Tag>{tag}</Tag>
                 </motion.div>
               ))}
-            </div>
-
-            {/* ── RESUME button — orange bg, dark text ── */}
-            <div
-              style={{
-                width: "fit-content",
-                flexShrink: 0,
-                pointerEvents: "auto",
-                overflow: "visible",
-              }}
-            >
-              <PixelButton
-                href="#projects"
-                pixelSize={6}
-                bgColor="#C4501A"
-                textColor="#0D0C0A"
-              >
-                RESUME
-              </PixelButton>
             </div>
           </motion.div>
         </div>

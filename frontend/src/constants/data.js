@@ -32,7 +32,6 @@ export const SITE_CONFIG = {
     { platform: 'Twitter', url: 'https://twitter.com/dhruvpal_dev', handle: '@dhruvpal_dev' },
   ],
   email: 'dhruv@example.com',
-  available: true,
 };
 
 export const SPECIALTIES = [

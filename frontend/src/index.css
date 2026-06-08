@@ -85,48 +85,19 @@ body {
   overflow-x: hidden;
 }
 
-/* Show custom cursor only on desktop */
-@media (min-width: 961px) {
-  body {
-    cursor: none;
-  }
+* {
+  cursor:
+    url("/cursors/arrow.png") 0 0,
+    auto;
 }
 
-/* ── Custom Cursor (PIXELATED — square) ── */
-.custom-cursor {
-  position: fixed;
-  width: 10px;
-  height: 10px;
-  background: var(--color-ink);
-  border-radius: 0; /* ◼ square pixel cursor */
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: transform 0.08s;
-  mix-blend-mode: multiply;
-}
-
-.custom-cursor-ring {
-  position: fixed;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--color-ink);
-  border-radius: 0; /* ◼ square ring */
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%, -50%);
-  transition:
-    width 0.3s,
-    height 0.3s,
-    border-color 0.3s;
-  opacity: 0.3;
-  mix-blend-mode: multiply;
-}
-
-.custom-cursor-ring.big {
-  width: 70px;
-  height: 70px;
-  opacity: 0.15;
+a,
+button,
+svg,
+[role="button"] {
+  cursor:
+    url("/cursors/cursor.png") 0 0,
+    pointer;
 }
 
 /* ── Scroll Progress ── */

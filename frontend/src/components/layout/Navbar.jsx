@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { SITE_CONFIG } from "../../constants/data";
+import PixelButton from "../ui/PixelButton";
 
 const NAV_LINKS = [
   { label: "About", href: "/#about" },
@@ -45,12 +45,14 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {SITE_CONFIG.available && (
-          <div className="flex items-center gap-2 text-[8px] text-ink-3 tracking-[1px] uppercase font-pixel">
-            <span className="w-1.5 h-1.5 bg-success animate-blink" />
-            Available
-          </div>
-        )}
+        <PixelButton
+          href="#projects"
+          pixelSize={6}
+          bgColor="#C4501A"
+          textColor="#0D0C0A"
+        >
+          RESUME
+        </PixelButton>
       </div>
     </nav>
   );
