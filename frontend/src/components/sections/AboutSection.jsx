@@ -4,6 +4,8 @@ import MetricCard from "../ui/MetricCard";
 import SpecialtyCard from "../ui/SpecialtyCard";
 import TimelineItem from "../ui/TimelineItem";
 import { SITE_CONFIG, SPECIALTIES, TIMELINE } from "../../constants/data";
+import { CometCard } from "../ui/comet-card";
+import CometCardDemo from "../ui/comet-card-demo";
 
 export default function AboutSection() {
   return (
@@ -15,58 +17,8 @@ export default function AboutSection() {
       <div className="px-12 pt-[100px] pb-20 border-r border-line flex flex-col justify-between sticky top-0 h-screen overflow-hidden max-[960px]:static max-[960px]:h-auto max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-10 max-[960px]:border-r-0 max-[960px]:border-b max-[960px]:border-line">
         {/* Portrait */}
         <ScrollReveal>
-          <div className="cursor-hover relative flex-1 mb-10 bg-cream-2 rounded-none overflow-hidden flex items-center justify-center group max-[960px]:min-h-[280px]">
-            <div
-              className="font-playfair font-black text-cream-3 leading-none italic transition-transform duration-600 group-hover:scale-105 group-hover:-rotate-3"
-              style={{
-                fontSize: "clamp(120px, 18vw, 220px)",
-                letterSpacing: "-8px",
-                transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
-              }}
-            >
-              {SITE_CONFIG.initials}
-            </div>
-            {/* Subtle dot-grid overlay — pixel theme accent */}
-            <div
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                inset: 0,
-                pointerEvents: "none",
-                backgroundImage:
-                  "radial-gradient(circle, rgba(14,13,11,0.06) 1px, transparent 1px)",
-                backgroundSize: "20px 20px",
-                zIndex: 1,
-              }}
-            />
-
-            <div
-              className="absolute bottom-0 left-0 right-0 p-6 z-10"
-              style={{
-                background:
-                  "linear-gradient(to top, rgba(237,233,224,0.95) 60%, transparent)",
-              }}
-            >
-              <div className="font-playfair text-[28px] font-bold tracking-tight">
-                {SITE_CONFIG.name}
-              </div>
-              <div className="text-[10px] text-ink-3 mt-1 font-mono tracking-[1px]">
-                {SITE_CONFIG.role}
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-
-        {/* Metrics */}
-        <ScrollReveal delay={0.2}>
-          <div className="grid grid-cols-2 gap-px bg-line border border-line rounded-xl overflow-hidden">
-            {SITE_CONFIG.metrics.map((metric) => (
-              <MetricCard
-                key={metric.label}
-                value={metric.value}
-                label={metric.label}
-              />
-            ))}
+          <div className="cursor-hover relative flex-1 mb-10 rounded-none flex items-center justify-center group max-[960px]:min-h-[280px]">
+            <CometCardDemo />
           </div>
         </ScrollReveal>
       </div>
