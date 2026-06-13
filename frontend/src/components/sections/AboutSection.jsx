@@ -40,7 +40,7 @@ export default function AboutSection() {
             >
               Passionate
               <br />
-              about <em className="italic text-ink-3 font-pixelify">craft.</em>
+              about <em className="italic text-accent font-pixelify">craft.</em>
             </h2>
           </ScrollReveal>
           {SITE_CONFIG.bio.map((paragraph, i) => (
