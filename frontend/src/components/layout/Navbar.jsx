@@ -11,10 +11,102 @@ const NAV_LINKS = [
 ];
 
 const STRIP_COUNT = 5;
-
 const GLITCH_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?/01XYZ#%&";
+const EASE_OUT_EXPO = [0.16, 1, 0.3, 1];
+const EASE_IN_OUT = [0.65, 0, 0.35, 1];
 
-function ScrambleText({ text, className, style, trigger }) {
+/* ── Boot scramble: starts as glitch, resolves to real text ────────────── */
+function BootScramble({ text, delay = 0, onDone, hovered, bootDone }) {
+  const [display, setDisplay] = useState(() =>
+    text
+      .split("")
+      .map(() => GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)])
+      .join(""),
+  );
+  const [visible, setVisible] = useState(false);
+  const [pixelFont, setPixelFont] = useState(false);
+  const intervalRef = useRef(null);
+  const frameRef = useRef(0);
+  const isBootDone = useRef(false);
+
+  // Initial boot scramble
+  useEffect(() => {
+    const showTimer = setTimeout(() => {
+      setVisible(true);
+      let frame = 0;
+      const totalFrames = 16;
+      const iv = setInterval(() => {
+        frame++;
+        const progress = frame / totalFrames;
+        const next = text
+          .split("")
+          .map((char, i) => {
+            if (progress > i / text.length + 0.2) return char;
+            return GLITCH_CHARS[
+              Math.floor(Math.random() * GLITCH_CHARS.length)
+            ];
+          })
+          .join("");
+        setDisplay(next);
+        if (frame >= totalFrames) {
+          clearInterval(iv);
+          setDisplay(text);
+          isBootDone.current = true;
+          onDone?.();
+        }
+      }, 38);
+      return () => clearInterval(iv);
+    }, delay);
+    return () => clearTimeout(showTimer);
+  }, []);
+
+  // Hover scramble after boot done
+  useEffect(() => {
+    if (!bootDone) return;
+    clearInterval(intervalRef.current);
+    frameRef.current = 0;
+    const totalFrames = 10;
+    setPixelFont(hovered);
+    intervalRef.current = setInterval(() => {
+      frameRef.current++;
+      const progress = frameRef.current / totalFrames;
+      const next = text
+        .split("")
+        .map((char, i) => {
+          if (progress > i / text.length + 0.3) return char;
+          return GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+        })
+        .join("");
+      setDisplay(next);
+      if (frameRef.current >= totalFrames) {
+        clearInterval(intervalRef.current);
+        setDisplay(text);
+      }
+    }, 35);
+  }, [hovered]);
+
+  return (
+    <span
+      className={`uppercase ${pixelFont ? "font-pixelify" : "font-mono"}`}
+      style={{
+        fontSize: "13px",
+        letterSpacing: "1.5px",
+        transform: pixelFont ? "scale(1.15)" : "scale(1)",
+        transformOrigin: "left center",
+        display: "inline-block",
+        lineHeight: 1,
+        opacity: visible ? 1 : 0,
+        color: isBootDone.current ? "inherit" : "#C4501A",
+        transition: "color 0.4s ease",
+      }}
+    >
+      {display}
+    </span>
+  );
+}
+
+/* ── Hover scramble ─────────────────────────────────────────────────────── */
+function ScrambleText({ text, trigger }) {
   const [display, setDisplay] = useState(text);
   const [pixelFont, setPixelFont] = useState(false);
   const intervalRef = useRef(null);
@@ -25,23 +117,17 @@ function ScrambleText({ text, className, style, trigger }) {
     frameRef.current = 0;
     const totalFrames = 10;
     setPixelFont(toPixel);
-
     intervalRef.current = setInterval(() => {
       frameRef.current++;
       const progress = frameRef.current / totalFrames;
-
       const next = text
         .split("")
         .map((char, i) => {
-          if (char === " ") return " ";
-          const charProgress = i / text.length;
-          if (progress > charProgress + 0.3) return char;
+          if (progress > i / text.length + 0.3) return char;
           return GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
         })
         .join("");
-
       setDisplay(next);
-
       if (frameRef.current >= totalFrames) {
         clearInterval(intervalRef.current);
         setDisplay(text);
@@ -55,15 +141,13 @@ function ScrambleText({ text, className, style, trigger }) {
 
   return (
     <span
-      className={`${className} ${pixelFont ? "font-pixelify" : "font-mono"}`}
+      className={pixelFont ? "font-pixelify" : "font-mono"}
       style={{
         fontSize: "13px",
         transform: pixelFont ? "scale(1.15)" : "scale(1)",
         transformOrigin: "left center",
         display: "inline-block",
         lineHeight: 1,
-        textAlign: "left",
-        ...style,
       }}
     >
       {display}
@@ -71,18 +155,26 @@ function ScrambleText({ text, className, style, trigger }) {
   );
 }
 
+/* ── Navbar ─────────────────────────────────────────────────────────────── */
 export default function Navbar() {
   const location = useLocation();
   const isHome = location.pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
+  const [bootDoneCount, setBootDoneCount] = useState(0);
+
+  const allBootDone = bootDoneCount >= NAV_LINKS.length;
+
+  // Each link's boot delay: staggered after logo finishes (~500ms)
+  const LOGO_DURATION = 500;
+  const LINK_STAGGER = 160;
 
   const handleNavClick = (e, href) => {
     if (isHome && href.startsWith("/#")) {
       e.preventDefault();
-      const id = href.replace("/#", "");
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: "smooth" });
+      document
+        .getElementById(href.replace("/#", ""))
+        ?.scrollIntoView({ behavior: "smooth" });
     }
     setMenuOpen(false);
   };
@@ -92,33 +184,46 @@ export default function Navbar() {
       <nav
         className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-12 py-5 max-[960px]:px-6 max-[960px]:py-4"
         style={{
-          background: "rgba(255, 255, 255, 0.08)",
+          background: "rgba(255,255,255,0.08)",
           backdropFilter: "blur(20px) saturate(180%)",
           WebkitBackdropFilter: "blur(20px) saturate(180%)",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.12)",
+          borderBottom: "1px solid rgba(255,255,255,0.12)",
         }}
       >
-        <Link to="/" className="flex items-center no-underline">
-          <img className="w-14" src="/logo.png" alt="logo" />
-        </Link>
+        {/* ── Logo: drops from above ── */}
+        <div style={{ overflow: "hidden", paddingBottom: 2 }}>
+          <motion.div
+            initial={{ y: "-120%", opacity: 0 }}
+            animate={{ y: "0%", opacity: 1 }}
+            transition={{
+              duration: 0.7,
+              ease: EASE_OUT_EXPO,
+              delay: 0.1,
+            }}
+          >
+            <Link to="/" className="flex items-center no-underline">
+              <img className="w-14" src="/logo.png" alt="logo" />
+            </Link>
+          </motion.div>
+        </div>
 
+        {/* ── Desktop nav ── */}
         <div className="hidden min-[961px]:flex items-center gap-9">
           <ul className="flex gap-8 list-none m-0 p-0">
-            {NAV_LINKS.map((link) => (
+            {NAV_LINKS.map((link, i) => (
               <li
                 key={link.label}
-                onMouseEnter={() => setHoveredLink(link.label)}
-                onMouseLeave={() => setHoveredLink(null)}
+                onMouseEnter={() => allBootDone && setHoveredLink(link.label)}
+                onMouseLeave={() => allBootDone && setHoveredLink(null)}
                 style={{
                   position: "relative",
                   minWidth: `${link.label.length * 12 + 10}px`,
                   height: "32px",
+                  cursor: "pointer",
                 }}
               >
-                <a
-                  href={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className="text-xs text-black no-underline tracking-[1.5px] uppercase font-bold transition-colors duration-250 hover:text-ink"
+                <div
+                  className="text-xs text-black no-underline tracking-[1.5px] uppercase font-bold"
                   style={{
                     position: "absolute",
                     inset: 0,
@@ -126,40 +231,54 @@ export default function Navbar() {
                     alignItems: "center",
                     whiteSpace: "nowrap",
                     lineHeight: 1,
+                    textShadow:
+                      "-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff",
                   }}
                 >
-                  <span
-                    style={{
-                      textShadow: `
-              -1px -1px 0 #fff,
-              1px -1px 0 #fff,
-              -1px 1px 0 #fff,
-              1px 1px 0 #fff
-            `,
-                      display: "inline-block",
-                    }}
-                  >
-                    <ScrambleText
-                      text={link.label}
-                      trigger={hoveredLink === link.label}
-                    />
-                  </span>
-                </a>
+                  <BootScramble
+                    text={link.label}
+                    delay={LOGO_DURATION + i * LINK_STAGGER}
+                    onDone={() => setBootDoneCount((c) => c + 1)}
+                    hovered={hoveredLink === link.label}
+                    bootDone={allBootDone}
+                  />
+                </div>
               </li>
             ))}
           </ul>
 
-          <PixelButton
-            href="#projects"
-            pixelSize={6}
-            bgColor="#C4501A"
-            textColor="#0D0C0A"
-          >
-            RESUME
-          </PixelButton>
+          {/* ── Resume: drops from above after all links done ── */}
+          <div style={{ overflow: "hidden", paddingBottom: 2 }}>
+            <motion.div
+              initial={{ y: "-120%", opacity: 0 }}
+              animate={
+                allBootDone
+                  ? { y: "0%", opacity: 1 }
+                  : { y: "-120%", opacity: 0 }
+              }
+              transition={{
+                duration: 0.6,
+                ease: EASE_OUT_EXPO,
+                delay: 0.05,
+              }}
+            >
+              <PixelButton
+                href="#projects"
+                pixelSize={6}
+                bgColor="#C4501A"
+                textColor="#0D0C0A"
+              >
+                RESUME
+              </PixelButton>
+            </motion.div>
+          </div>
         </div>
 
-        <button
+        {/* ── Hamburger ── */}
+        <motion.button
+          initial={{ y: "-120%", opacity: 0 }}
+          animate={{ y: "0%", opacity: 1 }}
+          transition={{ duration: 0.7, ease: EASE_OUT_EXPO, delay: 0.1 }}
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
@@ -179,7 +298,7 @@ export default function Navbar() {
                   ? { rotate: 45, top: "50%", y: "-50%" }
                   : { rotate: 0, top: "0%", y: "0%" }
               }
-              transition={{ duration: 0.3, ease: [0.65, 0, 0.35, 1] }}
+              transition={{ duration: 0.3, ease: EASE_IN_OUT }}
               style={{
                 position: "absolute",
                 left: 0,
@@ -195,7 +314,7 @@ export default function Navbar() {
                   ? { rotate: -45, bottom: "50%", y: "50%" }
                   : { rotate: 0, bottom: "0%", y: "0%" }
               }
-              transition={{ duration: 0.3, ease: [0.65, 0, 0.35, 1] }}
+              transition={{ duration: 0.3, ease: EASE_IN_OUT }}
               style={{
                 position: "absolute",
                 left: 0,
@@ -206,14 +325,13 @@ export default function Navbar() {
               }}
             />
           </div>
-        </button>
+        </motion.button>
       </nav>
 
-      {/* MOBILE STRIP-REVEAL MENU */}
+      {/* ── Mobile menu ─────────────────────────────────────────────────── */}
       <AnimatePresence>
         {menuOpen && (
           <div className="fixed inset-0 z-[90] min-[961px]:hidden">
-            {/* Strips sweeping in from the right */}
             {Array.from({ length: STRIP_COUNT }).map((_, i) => (
               <motion.div
                 key={i}
@@ -237,7 +355,6 @@ export default function Navbar() {
               />
             ))}
 
-            {/* Content layer */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -266,7 +383,7 @@ export default function Navbar() {
                     transition={{
                       duration: 0.5,
                       delay: 0.45 + i * 0.08,
-                      ease: [0.16, 1, 0.3, 1],
+                      ease: EASE_OUT_EXPO,
                     }}
                     style={{
                       borderBottom: "1px solid rgba(196,80,26,0.12)",
@@ -321,7 +438,6 @@ export default function Navbar() {
                 </motion.div>
               </div>
 
-              {/* Footer info block */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
