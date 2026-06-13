@@ -324,13 +324,6 @@ export default function PixelButton({
           alignItems: "center",
           justifyContent: "center",
           color: textColor,
-          textShadow: `
-      -1px -1px 0 ${bgColor},
-      1px -1px 0 ${bgColor},
-      -1px 1px 0 ${bgColor},
-      1px 1px 0 ${bgColor},
-      0 0 6px ${bgColor}
-    `,
           ...textStyle,
           zIndex: 1,
           pointerEvents: "none",

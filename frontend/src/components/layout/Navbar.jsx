@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import PixelButton from "../ui/PixelButton";
@@ -12,10 +12,70 @@ const NAV_LINKS = [
 
 const STRIP_COUNT = 5;
 
+const GLITCH_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?/01XYZ#%&";
+
+function ScrambleText({ text, className, style, trigger }) {
+  const [display, setDisplay] = useState(text);
+  const [pixelFont, setPixelFont] = useState(false);
+  const intervalRef = useRef(null);
+  const frameRef = useRef(0);
+
+  const runScramble = (toPixel) => {
+    clearInterval(intervalRef.current);
+    frameRef.current = 0;
+    const totalFrames = 10;
+    setPixelFont(toPixel);
+
+    intervalRef.current = setInterval(() => {
+      frameRef.current++;
+      const progress = frameRef.current / totalFrames;
+
+      const next = text
+        .split("")
+        .map((char, i) => {
+          if (char === " ") return " ";
+          const charProgress = i / text.length;
+          if (progress > charProgress + 0.3) return char;
+          return GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+        })
+        .join("");
+
+      setDisplay(next);
+
+      if (frameRef.current >= totalFrames) {
+        clearInterval(intervalRef.current);
+        setDisplay(text);
+      }
+    }, 35);
+  };
+
+  useEffect(() => {
+    runScramble(trigger);
+  }, [trigger]);
+
+  return (
+    <span
+      className={`${className} ${pixelFont ? "font-pixelify" : "font-mono"}`}
+      style={{
+        fontSize: "13px",
+        transform: pixelFont ? "scale(1.15)" : "scale(1)",
+        transformOrigin: "left center",
+        display: "inline-block",
+        lineHeight: 1,
+        textAlign: "left",
+        ...style,
+      }}
+    >
+      {display}
+    </span>
+  );
+}
+
 export default function Navbar() {
   const location = useLocation();
   const isHome = location.pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState(null);
 
   const handleNavClick = (e, href) => {
     if (isHome && href.startsWith("/#")) {
@@ -45,13 +105,45 @@ export default function Navbar() {
         <div className="hidden min-[961px]:flex items-center gap-9">
           <ul className="flex gap-8 list-none m-0 p-0">
             {NAV_LINKS.map((link) => (
-              <li key={link.label}>
+              <li
+                key={link.label}
+                onMouseEnter={() => setHoveredLink(link.label)}
+                onMouseLeave={() => setHoveredLink(null)}
+                style={{
+                  position: "relative",
+                  minWidth: `${link.label.length * 12 + 10}px`,
+                  height: "32px",
+                }}
+              >
                 <a
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  className="text-xs text-ink-3 no-underline tracking-[1.5px] uppercase font-normal transition-colors duration-250 hover:text-ink"
+                  className="text-xs text-black no-underline tracking-[1.5px] uppercase font-bold transition-colors duration-250 hover:text-ink"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    whiteSpace: "nowrap",
+                    lineHeight: 1,
+                  }}
                 >
-                  {link.label}
+                  <span
+                    style={{
+                      textShadow: `
+              -1px -1px 0 #fff,
+              1px -1px 0 #fff,
+              -1px 1px 0 #fff,
+              1px 1px 0 #fff
+            `,
+                      display: "inline-block",
+                    }}
+                  >
+                    <ScrambleText
+                      text={link.label}
+                      trigger={hoveredLink === link.label}
+                    />
+                  </span>
                 </a>
               </li>
             ))}
@@ -80,12 +172,12 @@ export default function Navbar() {
             cursor: "pointer",
           }}
         >
-          <div style={{ width: 24, height: 16, position: "relative" }}>
+          <div style={{ width: 24, height: 14, position: "relative" }}>
             <motion.span
               animate={
                 menuOpen
                   ? { rotate: 45, top: "50%", y: "-50%" }
-                  : { rotate: 0, top: 0, y: "0%" }
+                  : { rotate: 0, top: "0%", y: "0%" }
               }
               transition={{ duration: 0.3, ease: [0.65, 0, 0.35, 1] }}
               style={{
@@ -93,28 +185,15 @@ export default function Navbar() {
                 left: 0,
                 width: "100%",
                 height: 2,
-                background: menuOpen ? "#F5F2EB" : "#F5F2EB",
+                background: menuOpen ? "#F5F2EB" : "#0D0C0A",
                 transformOrigin: "center",
-              }}
-            />
-            <motion.span
-              animate={menuOpen ? { opacity: 0, x: 10 } : { opacity: 1, x: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: 0,
-                width: "100%",
-                height: 2,
-                background: "#F5F2EB",
-                transform: "translateY(-50%)",
               }}
             />
             <motion.span
               animate={
                 menuOpen
                   ? { rotate: -45, bottom: "50%", y: "50%" }
-                  : { rotate: 0, bottom: 0, y: "0%" }
+                  : { rotate: 0, bottom: "0%", y: "0%" }
               }
               transition={{ duration: 0.3, ease: [0.65, 0, 0.35, 1] }}
               style={{
@@ -122,7 +201,7 @@ export default function Navbar() {
                 left: 0,
                 width: "100%",
                 height: 2,
-                background: "#F5F2EB",
+                background: menuOpen ? "#F5F2EB" : "#0D0C0A",
                 transformOrigin: "center",
               }}
             />

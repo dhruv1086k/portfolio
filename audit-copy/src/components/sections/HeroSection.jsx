@@ -332,93 +332,237 @@ function SwatterSVG({ isSwatting }) {
   );
 }
 
-/* ── Hanging Button (no chain) ───────────────────────────────────────────── */
+/* ── Pixelated DNA Chain ──────────────────────────────────────────────────── */
+function PixelDNAChain({ height = 150, centerX = 90 }) {
+  const P = 4; // pixel size
+  const CHAIN_PERIOD = 20; // vertical pixels per full helix cycle
+  const AMPLITUDE = 10; // how far left/right the strands swing (in pixels)
+
+  const pixels = [];
+  const rows = Math.floor(height / P);
+
+  for (let row = 0; row < rows; row++) {
+    const y = row * P;
+    const t = (row / CHAIN_PERIOD) * Math.PI * 2;
+
+    // Left strand x (sine)
+    const lx = centerX + Math.round((Math.sin(t) * AMPLITUDE) / P) * P - P;
+    // Right strand x (sine, offset half period)
+    const rx =
+      centerX + Math.round((Math.sin(t + Math.PI) * AMPLITUDE) / P) * P - P;
+
+    const isNode = row % (CHAIN_PERIOD / 2) === 0; // connection rungs every half period
+
+    // Left strand pixel
+    pixels.push(
+      <rect
+        key={`l-${row}`}
+        x={lx}
+        y={y}
+        width={P}
+        height={P}
+        fill={isNode ? "#ff8c50" : "#C4501A"}
+        opacity={isNode ? 1 : 0.85}
+      />,
+    );
+
+    // Right strand pixel
+    pixels.push(
+      <rect
+        key={`r-${row}`}
+        x={rx}
+        y={y}
+        width={P}
+        height={P}
+        fill={isNode ? "#ff8c50" : "#C4501A"}
+        opacity={isNode ? 1 : 0.85}
+      />,
+    );
+
+    // Rung pixels connecting the two strands at node rows
+    if (isNode) {
+      const minX = Math.min(lx, rx);
+      const maxX = Math.max(lx, rx);
+      for (let rx2 = minX + P; rx2 < maxX; rx2 += P) {
+        pixels.push(
+          <rect
+            key={`rung-${row}-${rx2}`}
+            x={rx2}
+            y={y}
+            width={P}
+            height={P}
+            fill="#8B6914"
+            opacity={0.7}
+          />,
+        );
+      }
+      // Node end-caps (bright square at each end)
+      pixels.push(
+        <rect
+          key={`lnode-${row}`}
+          x={lx}
+          y={y}
+          width={P}
+          height={P}
+          fill="#ffb87a"
+        />,
+        <rect
+          key={`rnode-${row}`}
+          x={rx}
+          y={y}
+          width={P}
+          height={P}
+          fill="#ffb87a"
+        />,
+      );
+    }
+  }
+
+  // Shadow pixels (offset by 1 pixel south-east, very dark)
+  const shadowPixels = pixels.map((px) => {
+    if (!px) return null;
+    const { x, y, width, height } = px.props;
+    return (
+      <rect
+        key={`shadow-${px.key}`}
+        x={+x + 1}
+        y={+y + 1}
+        width={width}
+        height={height}
+        fill="rgba(0,0,0,0.25)"
+      />
+    );
+  });
+
+  return (
+    <svg
+      width="180"
+      height={height}
+      style={{
+        overflow: "visible",
+        pointerEvents: "none",
+        display: "block",
+        imageRendering: "pixelated",
+      }}
+    >
+      {/* Shadow layer underneath */}
+      {shadowPixels}
+      {/* Main chain pixels */}
+      {pixels}
+    </svg>
+  );
+}
+
+/* ── Hanging String + Button ──────────────────────────────────────────────── */
 function HangingButton({ onClick, pulled }) {
   const [hovered, setHovered] = useState(false);
+  const CHAIN_HEIGHT = 150;
+  const centerX = 90;
+
+  const tipX = centerX;
+  const tipY = CHAIN_HEIGHT;
 
   return (
     <AnimatePresence>
       {!pulled && (
-        <motion.button
-          initial={{ y: 40, opacity: 0 }}
+        <motion.div
+          initial={{ y: -(CHAIN_HEIGHT + 80), opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{
-            y: 40,
+            y: -(CHAIN_HEIGHT + 100),
             opacity: 0,
             transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] },
           }}
           transition={{
             type: "tween",
-            duration: 1,
+            duration: 1.4,
             ease: [0.22, 0.0, 0.36, 1.0],
             delay: 0.6,
           }}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          onClick={onClick}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.93, y: 3 }}
           style={{
-            position: "relative",
-            pointerEvents: "auto",
-            fontFamily: "'Pixelify Sans', 'Courier New', monospace",
-            fontSize: 13,
-            fontWeight: "bold",
-            letterSpacing: "1.5px",
-            color: "#F5F2EB",
-            background: "#0D0C0A",
-            border: "2px solid #C4501A",
-            borderRadius: 4,
-            padding: "10px 20px",
-            cursor: "pointer",
-            outline: "none",
-            boxShadow: hovered
-              ? "0 0 20px rgba(196,80,26,0.6), 0 4px 0 #6b200a, inset 0 0 8px rgba(196,80,26,0.1)"
-              : "0 4px 0 #6b200a, 0 6px 16px rgba(0,0,0,0.4)",
-            transition: "box-shadow 0.2s",
-            whiteSpace: "nowrap",
+            position: "absolute",
+            top: 0,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 20,
+            pointerEvents: "none",
+            width: 180,
           }}
         >
-          {[
-            { top: -1, left: -1 },
-            { top: -1, right: -1 },
-            { bottom: -1, left: -1 },
-            { bottom: -1, right: -1 },
-          ].map((s, i) => (
-            <span
-              key={i}
-              style={{
-                position: "absolute",
-                width: 4,
-                height: 4,
-                background: "#C4501A",
-                ...s,
-              }}
-            />
-          ))}
-          <span
+          {/* Pixelated DNA Chain */}
+          <PixelDNAChain height={CHAIN_HEIGHT} centerX={centerX} />
+
+          {/* Button — absolutely positioned at string tip */}
+          <motion.button
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            onClick={onClick}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.93, y: 3 }}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
+              position: "absolute",
+              left: tipX - 70,
+              top: tipY,
+              pointerEvents: "auto",
+              fontFamily: "'Pixelify Sans', 'Courier New', monospace",
+              fontSize: 13,
+              fontWeight: "bold",
+              letterSpacing: "1.5px",
+              color: "#F5F2EB",
+              background: "#0D0C0A",
+              border: "2px solid #C4501A",
+              borderRadius: 4,
+              padding: "10px 20px",
               cursor: "pointer",
+              outline: "none",
+              boxShadow: hovered
+                ? "0 0 20px rgba(196,80,26,0.6), 0 4px 0 #6b200a, inset 0 0 8px rgba(196,80,26,0.1)"
+                : "0 4px 0 #6b200a, 0 6px 16px rgba(0,0,0,0.4)",
+              transition: "box-shadow 0.2s",
+              whiteSpace: "nowrap",
             }}
           >
-            REMOVE BUGS
-          </span>
-          {hovered && (
+            {[
+              { top: -1, left: -1 },
+              { top: -1, right: -1 },
+              { bottom: -1, left: -1 },
+              { bottom: -1, right: -1 },
+            ].map((s, i) => (
+              <span
+                key={i}
+                style={{
+                  position: "absolute",
+                  width: 4,
+                  height: 4,
+                  background: "#C4501A",
+                  ...s,
+                }}
+              />
+            ))}
             <span
               style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: 3,
-                background:
-                  "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(196,80,26,0.04) 2px, rgba(196,80,26,0.04) 4px)",
-                pointerEvents: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                cursor: "pointer",
               }}
-            />
-          )}
-        </motion.button>
+            >
+              REMOVE BUGS
+            </span>
+            {hovered && (
+              <span
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: 3,
+                  background:
+                    "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(196,80,26,0.04) 2px, rgba(196,80,26,0.04) 4px)",
+                  pointerEvents: "none",
+                }}
+              />
+            )}
+          </motion.button>
+        </motion.div>
       )}
     </AnimatePresence>
   );
@@ -534,6 +678,9 @@ export default function HeroSection() {
 
   return (
     <div style={{ position: "relative" }}>
+      {/* HangingButton is OUTSIDE overflow-hidden section so bounce never clips */}
+      <HangingButton onClick={handleRemoveBugs} pulled={buttonPulled} />
+
       <section
         id="hero"
         ref={sectionRef}
@@ -766,6 +913,16 @@ export default function HeroSection() {
             products.
           </motion.h1>
 
+          {/* ── RESUME button — orange bg, dark text ── */}
+          {/* <div
+            style={{
+              width: "fit-content",
+              flexShrink: 0,
+              pointerEvents: "auto",
+              overflow: "visible",
+            }}
+          ></div> */}
+
           {/* ── Mobile pixel image ── */}
           <div
             className="block md:hidden mx-auto mb-6"
@@ -819,10 +976,6 @@ export default function HeroSection() {
                   <Tag>{tag}</Tag>
                 </motion.div>
               ))}
-            </div>
-
-            <div style={{ pointerEvents: "auto" }} className="max-sm:hidden">
-              <HangingButton onClick={handleRemoveBugs} pulled={buttonPulled} />
             </div>
           </motion.div>
         </div>

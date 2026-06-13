@@ -21,7 +21,9 @@ export const SITE_CONFIG = {
   heroTags: [
     'MERN Stack',
     'React Specialist',
-    'AI Integration'
+    'AI Integration',
+    'BCA · Student',
+    'ALFA Club · President',
   ],
   socials: [
     { platform: 'Email', url: 'mailto:dhruv@example.com', handle: 'dhruv@example.com' },
