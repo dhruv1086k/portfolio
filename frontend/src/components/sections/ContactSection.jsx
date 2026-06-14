@@ -56,7 +56,7 @@ export default function ContactSection() {
           <SectionNumber>
             <span className="text-[12px] font-pixelify">[06] — Contact</span>
           </SectionNumber>
-          <ScrollReveal>
+          <ScrollReveal variant="heading">
             <h2
               className="font-PT-serif font-bold leading-none mb-8"
               style={{
@@ -73,13 +73,13 @@ export default function ContactSection() {
               great.
             </h2>
           </ScrollReveal>
-          <ScrollReveal delay={0.1}>
+          <ScrollReveal delay={0.08} variant="text">
             <p className="text-[16px] font-mono text-ink-2 leading-[1.8] font-light max-w-[400px] mb-12">
               Open for full-time roles, freelance work, and exciting
               collaborations. Reply within 24 hours.
             </p>
           </ScrollReveal>
-          <ScrollReveal delay={0.2}>
+          <ScrollReveal delay={0.15} variant="card">
             <div>
               {SITE_CONFIG.socials.map((social) => (
                 <ContactLink

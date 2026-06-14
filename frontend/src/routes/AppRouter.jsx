@@ -1,13 +1,13 @@
-import { lazy, Suspense } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import RootLayout from '../layouts/RootLayout';
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RootLayout from "../layouts/RootLayout";
 
 // Lazy-loaded pages
-const HomePage = lazy(() => import('../pages/HomePage'));
-const AboutPage = lazy(() => import('../pages/AboutPage'));
-const ProjectsPage = lazy(() => import('../pages/ProjectsPage'));
-const ContactPage = lazy(() => import('../pages/ContactPage'));
-const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
+const HomePage = lazy(() => import("../pages/HomePage"));
+const AboutPage = lazy(() => import("../pages/AboutPage"));
+const ProjectsPage = lazy(() => import("../pages/ProjectsPage"));
+const ContactPage = lazy(() => import("../pages/ContactPage"));
+const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
 
 function PageLoader() {
   return (
@@ -19,55 +19,53 @@ function PageLoader() {
   );
 }
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <RootLayout />,
-    children: [
-      {
-        index: true,
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <HomePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'about',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <AboutPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'projects',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <ProjectsPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'contact',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <ContactPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: '*',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <NotFoundPage />
-          </Suspense>
-        ),
-      },
-    ],
-  },
-]);
-
 export default function AppRouter() {
-  return <RouterProvider router={router} />;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<RootLayout />}>
+          <Route
+            index
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <HomePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="about"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <AboutPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="projects"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ProjectsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="contact"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ContactPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <NotFoundPage />
+              </Suspense>
+            }
+          />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }

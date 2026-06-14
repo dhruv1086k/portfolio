@@ -18,7 +18,7 @@ export default function ProjectsSection() {
               [04] — Selected Work · 2023–2025
             </span>
           </SectionNumber>
-          <ScrollReveal>
+          <ScrollReveal variant="heading">
             <h2
               className="font-playfair font-bold leading-none"
               style={{
@@ -56,7 +56,7 @@ export default function ProjectsSection() {
       {/* Project List */}
       <div>
         {others.map((project, i) => (
-          <ScrollReveal key={project.title} delay={i * 0.1}>
+          <ScrollReveal key={project.title} delay={i * 0.08} variant="card">
             <ProjectRow
               num={project.num || String(i + 2).padStart(2, "0")}
               title={project.title}

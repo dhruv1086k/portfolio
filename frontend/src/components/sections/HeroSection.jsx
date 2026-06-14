@@ -1,15 +1,224 @@
-import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { useEffect, useRef } from "react";
-import ScrollReveal from "../common/ScrollReveal";
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  useSpring,
+  useScroll,
+} from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import Tag from "../ui/Tag";
 import PixelCanvas from "../ui/PixelCanvas";
 import { SITE_CONFIG } from "../../constants/data";
 
-/* ── Main HeroSection ─────────────────────────────────────────────────────── */
+const HERO_DELAY = 0.15;
+const EASE_EXPO = [0.22, 1, 0.36, 1];
+
+const T = {
+  label: HERO_DELAY,
+  heading: HERO_DELAY + 0.15,
+  tags: HERO_DELAY + 0.15 + 0.7,
+  description: HERO_DELAY + 0.15 + 0.7,
+  canvas: (HERO_DELAY + 0.15 + 0.9) * 1000,
+};
+
+/* ── Individual parallax shape — avoids hooks-in-loop ─────────────────── */
+function ParallaxShape({ shape, mx, my, baseDelay }) {
+  const x = useTransform(mx, [-0.5, 0.5], shape.dx);
+  const y = useTransform(my, [-0.5, 0.5], shape.dy);
+
+  const anim = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: {
+      duration: 0.9,
+      ease: "easeOut",
+      delay: baseDelay + shape.delay,
+    },
+  };
+
+  if (shape.isCross) {
+    return (
+      <motion.div
+        {...anim}
+        style={{ ...shape.style, x, y, position: "absolute" }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: 1.5,
+            background: "rgba(0,0,0,0.1)",
+            top: "50%",
+            left: 0,
+            transform: "translateY(-50%)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            height: "100%",
+            width: 1.5,
+            background: "rgba(0,0,0,0.1)",
+            left: "50%",
+            top: 0,
+            transform: "translateX(-50%)",
+          }}
+        />
+      </motion.div>
+    );
+  }
+
+  if (shape.isDotGrid) {
+    return (
+      <motion.div
+        {...anim}
+        style={{ ...shape.style, x, y, position: "absolute" }}
+      >
+        {Array.from({ length: 20 }).map((_, j) => (
+          <div
+            key={j}
+            style={{
+              width: 3,
+              height: 3,
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.15)",
+            }}
+          />
+        ))}
+      </motion.div>
+    );
+  }
+
+  return <motion.div {...anim} style={{ ...shape.style, x, y }} />;
+}
+
+/* ── Background parallax shapes ─────────────────────────────────────────── */
+function HeroShapes({ mx, my }) {
+  const shapes = [
+    {
+      dx: [-22, 22],
+      dy: [-14, 14],
+      delay: 0.0,
+      style: {
+        position: "absolute",
+        bottom: "18%",
+        right: "38%",
+        width: 200,
+        height: 200,
+        borderRadius: "50%",
+        border: "1.5px solid rgba(0,0,0,0.09)",
+        pointerEvents: "none",
+      },
+    },
+    {
+      dx: [-34, 34],
+      dy: [-22, 22],
+      delay: 0.12,
+      style: {
+        position: "absolute",
+        top: "12%",
+        right: "28%",
+        width: 120,
+        height: 120,
+        borderRadius: "50%",
+        border: "1.5px solid rgba(180,70,20,0.18)",
+        pointerEvents: "none",
+      },
+    },
+    {
+      dx: [-44, 44],
+      dy: [-28, 28],
+      delay: 0.22,
+      style: {
+        position: "absolute",
+        top: "22%",
+        right: "14%",
+        width: 80,
+        height: 80,
+        border: "1.5px solid rgba(0,0,0,0.08)",
+        transform: "rotate(20deg)",
+        pointerEvents: "none",
+      },
+    },
+    {
+      dx: [-18, 18],
+      dy: [-30, 30],
+      delay: 0.08,
+      style: {
+        position: "absolute",
+        bottom: "22%",
+        right: "44%",
+        width: 2,
+        height: 110,
+        background: "rgba(0,0,0,0.08)",
+        pointerEvents: "none",
+      },
+    },
+    {
+      dx: [-38, 38],
+      dy: [-24, 24],
+      delay: 0.18,
+      isCross: true,
+      style: {
+        position: "absolute",
+        top: "38%",
+        right: "32%",
+        width: 28,
+        height: 28,
+        pointerEvents: "none",
+      },
+    },
+    {
+      dx: [-14, 14],
+      dy: [-18, 18],
+      delay: 0.14,
+      isDotGrid: true,
+      style: {
+        position: "absolute",
+        top: "55%",
+        right: "42%",
+        display: "grid",
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: 7,
+        pointerEvents: "none",
+      },
+    },
+  ];
+
+  return (
+    <>
+      {shapes.map((shape, i) => (
+        <ParallaxShape
+          key={i}
+          shape={shape}
+          mx={mx}
+          my={my}
+          baseDelay={T.tags / 1000}
+        />
+      ))}
+    </>
+  );
+}
+
+/* ── Main HeroSection ────────────────────────────────────────────────────── */
 export default function HeroSection() {
   const sectionRef = useRef(null);
+  const [showCanvas, setShowCanvas] = useState(false);
 
-  /* ── Parallax motion ── */
+  // Scroll-linked parallax for depth
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const shapesY = useTransform(scrollYProgress, [0, 1], [0, 80]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowCanvas(true), T.canvas);
+    return () => clearTimeout(t);
+  }, []);
+
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const springConfig = { stiffness: 60, damping: 20, mass: 1 };
@@ -18,10 +227,10 @@ export default function HeroSection() {
 
   const h1RotateX = useTransform(my, [-0.5, 0.5], [5, -5]);
   const h1RotateY = useTransform(mx, [-0.5, 0.5], [-5, 5]);
-  const imgX = useTransform(mx, [-0.5, 0.5], [18, -18]);
-  const imgY = useTransform(my, [-0.5, 0.5], [14, -14]);
   const tagsX = useTransform(mx, [-0.5, 0.5], [12, -12]);
   const tagsY = useTransform(my, [-0.5, 0.5], [10, -10]);
+  const headingX = useTransform(mx, [-0.5, 0.5], [-15, 15]);
+  const headingY = useTransform(my, [-0.5, 0.5], [-10, 10]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -43,9 +252,6 @@ export default function HeroSection() {
     };
   }, [rawX, rawY]);
 
-  const headingX = useTransform(mx, [-0.5, 0.5], [-15, 15]);
-  const headingY = useTransform(my, [-0.5, 0.5], [-10, 10]);
-
   return (
     <div style={{ position: "relative" }}>
       <section
@@ -54,7 +260,7 @@ export default function HeroSection() {
         className="relative overflow-hidden border-b border-line"
         style={{ perspective: "1200px" }}
       >
-        {/* Noise texture overlay */}
+        {/* Noise overlay */}
         <div
           aria-hidden="true"
           className="absolute inset-0 pointer-events-none"
@@ -68,22 +274,60 @@ export default function HeroSection() {
         />
 
         {/* ═══ DESKTOP: Top bar ═══ */}
-        <div
-          className="hidden md:flex absolute top-[120px] left-12 right-12 items-start justify-between"
-          style={{ zIndex: 5, pointerEvents: "none" }}
-        >
-          <span className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase">
-            [01] — Portfolio 2025
-          </span>
-          <ScrollReveal delay={0.2}>
-            <div className="max-w-[340px] text-right text-[12px] text-ink-3 leading-[1.7] font-mono font-light">
-              {SITE_CONFIG.heroDescription}
-            </div>
-          </ScrollReveal>
-        </div>
-
-        {/* ═══ DESKTOP: Pixel canvas ═══ */}
         <motion.div
+          className="hidden md:flex absolute top-[120px] left-12 right-12 items-start justify-between"
+          style={{
+            zIndex: 5,
+            pointerEvents: "none",
+            y: heroY,
+            opacity: heroOpacity,
+          }}
+        >
+          {/* 1. Label from left */}
+          <div style={{ overflow: "hidden" }}>
+            <motion.span
+              className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase block"
+              initial={{ x: -56, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.6, ease: EASE_EXPO, delay: T.label }}
+            >
+              [09.03] - DHRUV PAL
+            </motion.span>
+          </div>
+
+          {/* 4. Description from top — fires same time as tags */}
+          <div style={{ overflow: "hidden" }}>
+            <motion.div
+              className="max-w-[340px] text-right text-[12px] text-ink-3 leading-[1.7] font-mono font-light"
+              initial={{ y: -32, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{
+                duration: 0.6,
+                ease: EASE_EXPO,
+                delay: T.description,
+              }}
+            >
+              {SITE_CONFIG.heroDescription}
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* ═══ DESKTOP: Shapes + Pixel canvas ═══ */}
+        <motion.div
+          className="hidden md:block absolute"
+          style={{
+            bottom: 0,
+            right: 0,
+            width: "clamp(240px, 35vw, 500px)",
+            height: "100vh",
+            zIndex: 0,
+            y: shapesY,
+          }}
+        >
+          <HeroShapes mx={mx} my={my} />
+        </motion.div>
+
+        <div
           className="hidden md:block absolute select-none"
           style={{
             bottom: 0,
@@ -93,62 +337,156 @@ export default function HeroSection() {
             zIndex: 1,
           }}
         >
-          <PixelCanvas src="/logo_2.png" pixelSize={4} anchor="bottom-center" />
-        </motion.div>
+          {/* 5. Canvas mounts late — pixel assembly IS the entrance */}
+          {showCanvas && (
+            <PixelCanvas
+              src="/logo_2.png"
+              pixelSize={4}
+              anchor="bottom-center"
+            />
+          )}
+        </div>
 
         {/* ═══ CONTENT WRAPPER ═══ */}
         <div className="relative flex flex-col min-h-screen">
           {/* Mobile top info */}
           <div className="md:hidden pt-24 px-6 space-y-2">
-            <span className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase block">
-              [01] — Portfolio 2025
-            </span>
-            <div className="text-[12px] text-ink-3 leading-[1.7] font-mono font-light max-w-[320px]">
-              {SITE_CONFIG.heroDescription}
+            <div style={{ overflow: "hidden" }}>
+              <motion.span
+                className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase block"
+                initial={{ x: -40, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.5, ease: EASE_EXPO, delay: T.label }}
+              >
+                [09.03] - DHRUV PAL
+              </motion.span>
+            </div>
+            <div style={{ overflow: "hidden" }}>
+              <motion.div
+                className="text-[12px] text-ink-3 leading-[1.7] font-mono font-light max-w-[320px]"
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  duration: 0.5,
+                  ease: EASE_EXPO,
+                  delay: T.description,
+                }}
+              >
+                {SITE_CONFIG.heroDescription}
+              </motion.div>
             </div>
           </div>
 
           <div className="flex-1 min-h-6 md:min-h-0" />
 
-          {/* ── Heading ── */}
-          <motion.h1
+          {/* 2. Heading — each line rises one by one from bottom */}
+          <motion.div
             className="font-PT-serif font-bold leading-[0.95] mb-6 md:mb-12 px-6 sm:px-8 md:px-12 md:max-w-[55%]"
             style={{
               fontSize: "clamp(46px, 11vw, 148px)",
               letterSpacing: "clamp(-2px, -0.4vw, -5px)",
               position: "relative",
               zIndex: 3,
-              rotateX: h1RotateX,
-              rotateY: h1RotateY,
-              x: headingX,
-              y: headingY,
-              transformStyle: "preserve-3d",
               pointerEvents: "none",
-              textShadow: `1px 1px 0px rgba(0,0,0,0.06), 2px 2px 0px rgba(0,0,0,0.05), 4px 4px 0px rgba(0,0,0,0.04), 8px 8px 0px rgba(0,0,0,0.03), 14px 14px 28px rgba(0,0,0,0.08)`,
+              y: heroY,
+              opacity: heroOpacity,
             }}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
           >
-            I build
-            <br />
-            <em
-              className="italic font-pixelify"
+            {/* Line 1: "I build" */}
+            <motion.div
               style={{
-                display: "inline-block",
-                color: "var(--color-accent)",
-                textShadow: `1px 1px 0px rgba(0,0,0,0.08), 3px 3px 0px rgba(0,0,0,0.06), 6px 6px 0px rgba(0,0,0,0.05), 10px 10px 0px rgba(0,0,0,0.04), 18px 18px 32px rgba(0,0,0,0.12)`,
-                transform: "translateZ(20px) scale(1.01)",
+                x: headingX,
+                y: headingY,
+                rotateX: h1RotateX,
+                rotateY: h1RotateY,
                 transformStyle: "preserve-3d",
               }}
             >
-              digital
-            </em>
-            <br />
-            products.
-          </motion.h1>
+              <div style={{ overflow: "hidden" }}>
+                <motion.span
+                  style={{
+                    display: "block",
+                    textShadow: `1px 1px 0px rgba(0,0,0,0.06), 2px 2px 0px rgba(0,0,0,0.04), 8px 8px 16px rgba(0,0,0,0.06)`,
+                  }}
+                  initial={{ y: "105%" }}
+                  animate={{ y: "0%" }}
+                  transition={{
+                    duration: 0.7,
+                    ease: EASE_EXPO,
+                    delay: T.heading,
+                  }}
+                >
+                  I build
+                </motion.span>
+              </div>
+            </motion.div>
 
-          {/* ── Mobile pixel image ── */}
+            {/* Line 2: "digital" */}
+            <motion.div
+              style={{
+                x: headingX,
+                y: headingY,
+                transformStyle: "preserve-3d",
+              }}
+            >
+              <div style={{ overflow: "hidden" }}>
+                <motion.span
+                  style={{ display: "block" }}
+                  initial={{ y: "105%" }}
+                  animate={{ y: "0%" }}
+                  transition={{
+                    duration: 0.7,
+                    ease: EASE_EXPO,
+                    delay: T.heading + 0.15,
+                  }}
+                >
+                  <em
+                    className="italic font-pixelify"
+                    style={{
+                      display: "inline-block",
+                      color: "var(--color-accent)",
+                      textShadow: `1px 1px 0px rgba(0,0,0,0.06), 3px 3px 0px rgba(0,0,0,0.04), 10px 10px 20px rgba(0,0,0,0.08)`,
+                      transform: "translateZ(20px) scale(1.01)",
+                      transformStyle: "preserve-3d",
+                    }}
+                  >
+                    digital
+                  </em>
+                </motion.span>
+              </div>
+            </motion.div>
+
+            {/* Line 3: "products." */}
+            <motion.div
+              style={{
+                x: headingX,
+                y: headingY,
+                rotateX: h1RotateX,
+                rotateY: h1RotateY,
+                transformStyle: "preserve-3d",
+              }}
+            >
+              <div style={{ overflow: "hidden" }}>
+                <motion.span
+                  style={{
+                    display: "block",
+                    textShadow: `1px 1px 0px rgba(0,0,0,0.06), 2px 2px 0px rgba(0,0,0,0.04), 8px 8px 16px rgba(0,0,0,0.06)`,
+                  }}
+                  initial={{ y: "105%" }}
+                  animate={{ y: "0%" }}
+                  transition={{
+                    duration: 0.7,
+                    ease: EASE_EXPO,
+                    delay: T.heading + 0.3,
+                  }}
+                >
+                  products.
+                </motion.span>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Mobile pixel image */}
           <div
             className="block md:hidden mx-auto mb-6"
             style={{
@@ -158,10 +496,10 @@ export default function HeroSection() {
               zIndex: 2,
             }}
           >
-            <PixelCanvas src="/logo_2.png" anchor="center" />
+            {showCanvas && <PixelCanvas src="/logo_2.png" anchor="center" />}
           </div>
 
-          {/* ── Tags ── */}
+          {/* 3. Tags: slide in from left, each from further behind previous */}
           <motion.div
             className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 sm:gap-4 px-6 sm:px-8 md:px-12 pb-10 md:pb-16"
             style={{
@@ -171,9 +509,6 @@ export default function HeroSection() {
               y: tagsY,
               pointerEvents: "none",
             }}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.5 }}
           >
             <div
               className="flex gap-2 flex-wrap"
@@ -181,21 +516,28 @@ export default function HeroSection() {
                 width: "fit-content",
                 maxWidth: "100%",
                 pointerEvents: "auto",
+                position: "relative",
               }}
             >
               {SITE_CONFIG.heroTags.map((tag, idx) => (
                 <motion.div
                   key={tag}
+                  initial={{ x: -(60 + idx * 56), opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{
+                    duration: 0.5 + idx * 0.04,
+                    ease: EASE_EXPO,
+                    delay: T.tags + idx * 0.08,
+                  }}
                   style={{
                     display: "inline-block",
-                    boxShadow: `0 ${2 + idx}px ${6 + idx * 2}px rgba(0,0,0,${0.06 + idx * 0.01})`,
+                    position: "relative",
+                    zIndex: SITE_CONFIG.heroTags.length - idx,
                     borderRadius: "9999px",
-                    transform: `translateZ(${idx * 2}px)`,
                   }}
                   whileHover={{
                     y: -3,
-                    boxShadow: `0 8px 20px rgba(0,0,0,0.12)`,
-                    transition: { duration: 0.2 },
+                    transition: { duration: 0.2, ease: [0.34, 1.56, 0.64, 1] },
                   }}
                 >
                   <Tag>{tag}</Tag>

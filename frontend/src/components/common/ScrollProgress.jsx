@@ -1,12 +1,12 @@
-import useScrollProgress from '../../hooks/useScrollProgress';
+import { motion, useScroll } from "framer-motion";
 
 export default function ScrollProgress() {
-  const progress = useScrollProgress();
+  const { scrollYProgress } = useScroll();
 
   return (
-    <div
+    <motion.div
       className="scroll-progress"
-      style={{ width: `${progress * 100}%` }}
+      style={{ scaleX: scrollYProgress }}
     />
   );
 }

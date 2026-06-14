@@ -15,7 +15,7 @@ export default function SkillsSection() {
           <SectionNumber>
             <span className="font-mono text-[12px]">[03] — Stack</span>
           </SectionNumber>
-          <ScrollReveal>
+          <ScrollReveal variant="heading">
             <h2
               className="font-playfair font-bold leading-none"
               style={{
@@ -30,7 +30,7 @@ export default function SkillsSection() {
             </h2>
           </ScrollReveal>
         </div>
-        <ScrollReveal delay={0.2}>
+        <ScrollReveal delay={0.15} variant="text">
           <p className="font-mono max-w-[340px] text-sm text-ink-3 leading-[1.7]">
             From pixel-perfect interfaces to scalable back-end systems — a
             modern, focused toolkit for building exceptional products.
@@ -51,7 +51,8 @@ export default function SkillsSection() {
           return (
             <ScrollReveal
               key={skill.category}
-              delay={i * 0.1}
+              delay={i * 0.08}
+              variant="card"
               className={spanClass}
             >
               <SkillCard

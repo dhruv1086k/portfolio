@@ -30,7 +30,7 @@ export default function AboutSection() {
           <SectionNumber>
             <span className="font-mono text-[10px]">[02] — About</span>
           </SectionNumber>
-          <ScrollReveal>
+          <ScrollReveal variant="heading">
             <h2
               className="font-PT-serif font-bold leading-[1.05] mb-7"
               style={{
@@ -44,7 +44,7 @@ export default function AboutSection() {
             </h2>
           </ScrollReveal>
           {SITE_CONFIG.bio.map((paragraph, i) => (
-            <ScrollReveal key={i} delay={0.1 * (i + 1)}>
+            <ScrollReveal key={i} delay={0.08 * (i + 1)} variant="text">
               <p
                 className="text-[14px] font-mono text-ink-2 leading-[1.8] font-light max-w-[540px]"
                 style={{ marginTop: i > 0 ? "16px" : undefined }}
@@ -55,7 +55,7 @@ export default function AboutSection() {
         </div>
 
         {/* Specialty Cards */}
-        <ScrollReveal delay={0.2}>
+        <ScrollReveal delay={0.15} variant="card">
           <div className="grid grid-cols-2 gap-3">
             {SPECIALTIES.map((s) => (
               <SpecialtyCard key={s.title} title={s.title} sub={s.sub} />
@@ -64,7 +64,7 @@ export default function AboutSection() {
         </ScrollReveal>
 
         {/* Timeline */}
-        <ScrollReveal delay={0.3}>
+        <ScrollReveal delay={0.2} variant="card">
           <div className="border-t border-line">
             {TIMELINE.map((item) => (
               <TimelineItem

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, forwardRef } from "react";
+import { useEffect, useRef, forwardRef } from "react";
 
 function getAdaptivePixelSize(canvasWidth) {
   if (canvasWidth < 300) return 8;
@@ -7,10 +7,6 @@ function getAdaptivePixelSize(canvasWidth) {
   return 4;
 }
 
-const isMobile = () =>
-  typeof window !== "undefined" &&
-  (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
-
 const PixelCanvas = forwardRef(function PixelCanvas(
   { src, pixelSize, anchor = "bottom-right" },
   ref,
@@ -18,38 +14,14 @@ const PixelCanvas = forwardRef(function PixelCanvas(
   const canvasRef = useRef(null);
   const pixelsRef = useRef([]);
   const phaseRef = useRef("idle");
-  const mouseRef = useRef({ x: -9999, y: -9999, active: false });
   const animRef = useRef(null);
   const visibleRef = useRef(true);
-  const mobileRef = useRef(false);
   const retryRef = useRef(null);
-
-  const handleMouseEnter = useCallback(() => {
-    if (mobileRef.current) return;
-    mouseRef.current.active = true;
-  }, []);
-
-  const handleMouseMove = useCallback((e) => {
-    if (mobileRef.current) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    mouseRef.current.x = e.clientX - rect.left;
-    mouseRef.current.y = e.clientY - rect.top;
-    mouseRef.current.active = true;
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    if (mobileRef.current) return;
-    mouseRef.current.active = false;
-    mouseRef.current.x = -9999;
-    mouseRef.current.y = -9999;
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true });
-    mobileRef.current = isMobile();
 
     const ioObserver = new IntersectionObserver(
       ([entry]) => {
@@ -61,8 +33,8 @@ const PixelCanvas = forwardRef(function PixelCanvas(
 
     const init = () => {
       const rect = canvas.getBoundingClientRect();
+
       if (!rect.width || !rect.height) {
-        // Layout not ready yet (common on mobile first paint) — retry shortly.
         retryRef.current = setTimeout(init, 50);
         return;
       }
@@ -75,10 +47,6 @@ const PixelCanvas = forwardRef(function PixelCanvas(
       const pSize = pixelSize || getAdaptivePixelSize(W);
       const img = new Image();
       img.src = src;
-
-      img.onerror = () => {
-        console.error("PixelCanvas: failed to load image", src);
-      };
 
       img.onload = () => {
         const cols = Math.floor(W / pSize);
@@ -108,8 +76,6 @@ const PixelCanvas = forwardRef(function PixelCanvas(
         try {
           imageData = offCtx.getImageData(0, 0, W, H).data;
         } catch (err) {
-          // Tainted canvas (CORS) — bail out gracefully.
-          console.error("PixelCanvas: getImageData failed (CORS?)", err);
           return;
         }
 
@@ -145,8 +111,6 @@ const PixelCanvas = forwardRef(function PixelCanvas(
               delay:
                 Math.sqrt((targetX - W * 0.5) ** 2 + (targetY - H * 0.5) ** 2) /
                 Math.max(W, H),
-              vx: 0,
-              vy: 0,
             });
           }
         }
@@ -161,80 +125,34 @@ const PixelCanvas = forwardRef(function PixelCanvas(
       const startTime = performance.now();
       const ASSEMBLE_MS = 1400;
 
-      const MOUSE_RADIUS = 110;
-      const MOUSE_RADIUS_SQ = MOUSE_RADIUS * MOUSE_RADIUS;
-      const MOUSE_FORCE = 1.6;
-      const VEL_THRESHOLD = 0.15;
-      const SPRING = 0.08;
-      const DAMPING = 0.88;
+      const MAX_SHIFT = Math.max(4, Math.round(pSize * 2));
+      const BAND_COUNT = 4;
 
       const frameData = ctx.createImageData(W, H);
       const buf = frameData.data;
-      const onMobile = mobileRef.current;
 
-      const drawFrame = (now) => {
-        const elapsed = now - startTime;
+      const generateBands = () => {
+        const bands = [];
+        for (let i = 0; i < BAND_COUNT; i++) {
+          bands.push({
+            y0: Math.random() * H,
+            height: H * (0.04 + Math.random() * 0.12),
+            rShift: (Math.random() - 0.5) * 2 * MAX_SHIFT,
+            bShift: (Math.random() - 0.5) * 2 * MAX_SHIFT,
+          });
+        }
+        return bands;
+      };
+
+      // Draw a single static frame (no glitch)
+      const drawStatic = () => {
         const pixels = pixelsRef.current;
-        const mouse = mouseRef.current;
-
         buf.fill(0);
-        let anyMoving = false;
-
         for (let i = 0, len = pixels.length; i < len; i++) {
           const px = pixels[i];
-          const phase = phaseRef.current;
-
-          if (phase === "assembling") {
-            const pxDelay = px.delay * 500;
-            const progress = Math.max(
-              0,
-              Math.min(1, (elapsed - pxDelay) / ASSEMBLE_MS),
-            );
-            const ease = 1 - (1 - progress) ** 3;
-            px.currentX += (px.targetX - px.currentX) * ease * 0.12;
-            px.currentY += (px.targetY - px.currentY) * ease * 0.12;
-            if (
-              Math.abs(px.currentX - px.targetX) > 0.3 ||
-              Math.abs(px.currentY - px.targetY) > 0.3
-            ) {
-              anyMoving = true;
-            } else {
-              px.currentX = px.targetX;
-              px.currentY = px.targetY;
-            }
-          } else if (!onMobile) {
-            if (mouse.active) {
-              const dx = px.currentX - mouse.x;
-              const dy = px.currentY - mouse.y;
-              const distSq = dx * dx + dy * dy;
-              if (distSq < MOUSE_RADIUS_SQ && distSq > 0) {
-                const dist = Math.sqrt(distSq);
-                const falloff = 1 - dist / MOUSE_RADIUS;
-                const smooth = falloff * falloff;
-                px.vx += (dx / dist) * MOUSE_FORCE * smooth;
-                px.vy += (dy / dist) * MOUSE_FORCE * smooth;
-              }
-            }
-            px.vx = (px.vx + (px.targetX - px.currentX) * SPRING) * DAMPING;
-            px.vy = (px.vy + (px.targetY - px.currentY) * SPRING) * DAMPING;
-            px.currentX += px.vx;
-            px.currentY += px.vy;
-            if (
-              Math.abs(px.vx) > VEL_THRESHOLD ||
-              Math.abs(px.vy) > VEL_THRESHOLD
-            )
-              anyMoving = true;
-          }
-
           const bx = Math.round(px.currentX);
           const by = Math.round(px.currentY);
-          if (bx + pSize <= 0 || bx >= W || by + pSize <= 0 || by >= H)
-            continue;
-
-          const r = px.r,
-            g = px.g,
-            b = px.b,
-            a = px.a;
+          if (bx + pSize <= 0 || bx >= W || by + pSize <= 0 || by >= H) continue;
           for (let dy = 0; dy < pSize; dy++) {
             const py2 = by + dy;
             if (py2 < 0 || py2 >= H) continue;
@@ -243,46 +161,137 @@ const PixelCanvas = forwardRef(function PixelCanvas(
               const ppx = bx + dx;
               if (ppx < 0 || ppx >= W) continue;
               const idx = (rowOff + ppx) << 2;
-              buf[idx] = r;
-              buf[idx + 1] = g;
-              buf[idx + 2] = b;
-              buf[idx + 3] = a;
+              buf[idx] = px.r;
+              buf[idx + 1] = px.g;
+              buf[idx + 2] = px.b;
+              buf[idx + 3] = px.a;
+            }
+          }
+        }
+        ctx.putImageData(frameData, 0, 0);
+      };
+
+      // Run a short glitch burst (rAF for ~200ms then stop)
+      const runGlitchBurst = () => {
+        if (!visibleRef.current) return;
+        const bands = generateBands();
+        const burstStart = performance.now();
+        const BURST_MS = 180;
+        let burstRaf = null;
+
+        const burstFrame = (now) => {
+          const elapsed = now - burstStart;
+          if (elapsed > BURST_MS) {
+            drawStatic();
+            return;
+          }
+          const glitchT = elapsed / BURST_MS;
+          let intensity = 0;
+          if (glitchT < 0.15) intensity = glitchT / 0.15;
+          else if (glitchT > 0.75) intensity = (1 - glitchT) / 0.25;
+          else intensity = 1;
+
+          const pixels = pixelsRef.current;
+          buf.fill(0);
+          for (let i = 0, len = pixels.length; i < len; i++) {
+            const px = pixels[i];
+            const bx = Math.round(px.currentX);
+            const by = Math.round(px.currentY);
+            if (bx + pSize <= 0 || bx >= W || by + pSize <= 0 || by >= H) continue;
+
+            let rOffsetX = 0, bOffsetX = 0;
+            for (let band = 0; band < bands.length; band++) {
+              const bnd = bands[band];
+              if (px.targetY >= bnd.y0 && px.targetY < bnd.y0 + bnd.height) {
+                rOffsetX = Math.round(bnd.rShift * intensity);
+                bOffsetX = Math.round(bnd.bShift * intensity);
+                break;
+              }
+            }
+
+            for (let dy = 0; dy < pSize; dy++) {
+              const py2 = by + dy;
+              if (py2 < 0 || py2 >= H) continue;
+              const rowOff = py2 * W;
+              for (let dx = 0; dx < pSize; dx++) {
+                const ppx = bx + dx;
+                if (ppx < 0 || ppx >= W) continue;
+                const idx = (rowOff + ppx) << 2;
+                buf[idx + 1] = px.g;
+                buf[idx + 3] = Math.max(buf[idx + 3], px.a);
+                if (rOffsetX !== 0) {
+                  const rx = ppx + rOffsetX;
+                  if (rx >= 0 && rx < W) { const rIdx = (rowOff + rx) << 2; buf[rIdx] = px.r; buf[rIdx + 3] = Math.max(buf[rIdx + 3], px.a); }
+                } else { buf[idx] = px.r; }
+                if (bOffsetX !== 0) {
+                  const bxp = ppx + bOffsetX;
+                  if (bxp >= 0 && bxp < W) { const bIdx = (rowOff + bxp) << 2; buf[bIdx + 2] = px.b; buf[bIdx + 3] = Math.max(buf[bIdx + 3], px.a); }
+                } else { buf[idx + 2] = px.b; }
+              }
+            }
+          }
+          ctx.putImageData(frameData, 0, 0);
+          burstRaf = requestAnimationFrame(burstFrame);
+        };
+        burstRaf = requestAnimationFrame(burstFrame);
+      };
+
+      // Assembly loop — runs only during assembly, then stops
+      const drawAssemblyFrame = (now) => {
+        const elapsed = now - startTime;
+        const pixels = pixelsRef.current;
+        buf.fill(0);
+        let anyMoving = false;
+
+        for (let i = 0, len = pixels.length; i < len; i++) {
+          const px = pixels[i];
+          const pxDelay = px.delay * 500;
+          const progress = Math.max(0, Math.min(1, (elapsed - pxDelay) / ASSEMBLE_MS));
+          const ease = 1 - (1 - progress) ** 3;
+          px.currentX += (px.targetX - px.currentX) * ease * 0.12;
+          px.currentY += (px.targetY - px.currentY) * ease * 0.12;
+          if (Math.abs(px.currentX - px.targetX) > 0.3 || Math.abs(px.currentY - px.targetY) > 0.3) {
+            anyMoving = true;
+          } else {
+            px.currentX = px.targetX;
+            px.currentY = px.targetY;
+          }
+
+          const bx = Math.round(px.currentX);
+          const by = Math.round(px.currentY);
+          if (bx + pSize <= 0 || bx >= W || by + pSize <= 0 || by >= H) continue;
+          for (let dy = 0; dy < pSize; dy++) {
+            const py2 = by + dy;
+            if (py2 < 0 || py2 >= H) continue;
+            const rowOff = py2 * W;
+            for (let dx = 0; dx < pSize; dx++) {
+              const ppx = bx + dx;
+              if (ppx < 0 || ppx >= W) continue;
+              const idx = (rowOff + ppx) << 2;
+              buf[idx] = px.r;
+              buf[idx + 1] = px.g;
+              buf[idx + 2] = px.b;
+              buf[idx + 3] = px.a;
             }
           }
         }
 
         ctx.putImageData(frameData, 0, 0);
-        return anyMoving;
-      };
 
-      const loop = (now) => {
-        if (!visibleRef.current) {
-          animRef.current = requestAnimationFrame(loop);
-          return;
-        }
-
-        const anyMoving = drawFrame(now);
-
-        if (phaseRef.current === "assembling" && !anyMoving) {
+        if (anyMoving) {
+          animRef.current = requestAnimationFrame(drawAssemblyFrame);
+        } else {
+          // Assembly done — draw final static frame, then schedule 3 glitch bursts and stop
           phaseRef.current = "settled";
-          return;
+          drawStatic();
+          // 3 subtle glitch bursts at 2s, 4s, 6s after settling, then fully idle
+          setTimeout(runGlitchBurst, 2000);
+          setTimeout(runGlitchBurst, 4000);
+          setTimeout(runGlitchBurst, 6500);
         }
-
-        if (
-          phaseRef.current === "settled" &&
-          !anyMoving &&
-          !mouseRef.current.active
-        ) {
-          return;
-        }
-
-        animRef.current = requestAnimationFrame(loop);
       };
 
-      // Draw the very first frame synchronously so something appears immediately,
-      // then continue the animation loop.
-      drawFrame(startTime);
-      animRef.current = requestAnimationFrame(loop);
+      animRef.current = requestAnimationFrame(drawAssemblyFrame);
     };
 
     init();
@@ -305,9 +314,6 @@ const PixelCanvas = forwardRef(function PixelCanvas(
   return (
     <canvas
       ref={canvasRef}
-      onMouseEnter={handleMouseEnter}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       style={{
         display: "block",
         width: "100%",

@@ -14,7 +14,7 @@ export default function ExperienceSection() {
             [05] — Experience & Achievements
           </span>
         </SectionNumber>
-        <ScrollReveal>
+        <ScrollReveal variant="heading">
           <h2
             className="font-PT-serif font-bold leading-none"
             style={{
@@ -34,7 +34,7 @@ export default function ExperienceSection() {
         {/* Experience List */}
         <div className="border-r border-line max-[960px]:border-r-0">
           {EXPERIENCES.map((exp, i) => (
-            <ScrollReveal key={exp.role + exp.company} delay={i * 0.1}>
+            <ScrollReveal key={exp.role + exp.company} delay={i * 0.08} variant="card">
               <ExperienceItem
                 period={exp.period}
                 role={exp.role}
@@ -48,7 +48,7 @@ export default function ExperienceSection() {
         {/* Achievements Grid */}
         <div className="p-12 grid grid-cols-2 gap-4 content-start max-[960px]:p-6">
           {ACHIEVEMENTS.map((ach, i) => (
-            <ScrollReveal key={ach.title} delay={(i + 1) * 0.1}>
+            <ScrollReveal key={ach.title} delay={(i + 1) * 0.08} variant="card">
               <AchievementCard
                 icon={ach.icon}
                 title={ach.title}
