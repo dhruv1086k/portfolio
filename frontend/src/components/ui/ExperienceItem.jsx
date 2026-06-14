@@ -9,7 +9,7 @@ export default function ExperienceItem({ period, role, company, description }) {
       <div className="font-pixelify text-[12px] text-ink-4 tracking-[1.5px] uppercase mb-2.5">
         {period}
       </div>
-      <div className="font-playfair text-[26px] font-bold tracking-tight mb-1">
+      <div className="font-PT-serif text-[26px] font-bold tracking-tight mb-1">
         {role}
       </div>
       <div className="text-[13px] font-mono text-accent font-normal mb-3.5 tracking-[0.3px]">

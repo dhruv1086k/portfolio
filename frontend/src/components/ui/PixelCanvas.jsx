@@ -1,8 +1,8 @@
 import { useEffect, useRef, forwardRef } from "react";
 
 function getAdaptivePixelSize(canvasWidth) {
-  if (canvasWidth < 300) return 8;
-  if (canvasWidth < 500) return 6;
+  if (canvasWidth < 300) return 7;
+  if (canvasWidth < 500) return 4;
   if (canvasWidth < 800) return 5;
   return 4;
 }
@@ -125,173 +125,174 @@ const PixelCanvas = forwardRef(function PixelCanvas(
       const startTime = performance.now();
       const ASSEMBLE_MS = 1400;
 
-      const MAX_SHIFT = Math.max(4, Math.round(pSize * 2));
-      const BAND_COUNT = 4;
+      // RGB channel-split glitch — periodic brief burst
+      const GLITCH_INTERVAL_MS = 1800; // time between glitch bursts
+      const GLITCH_DURATION_MS = 150; // how long each burst lasts
+      const MAX_SHIFT = Math.max(3, Math.round(pSize * 2.5)); // px offset for R/B channels
+      const BAND_COUNT = 5; // number of horizontal glitch bands
 
       const frameData = ctx.createImageData(W, H);
       const buf = frameData.data;
 
+      // Pre-generate band definitions (regenerated each burst)
+      let glitchBands = [];
+      let lastBurstStart = -Infinity;
+
       const generateBands = () => {
-        const bands = [];
+        glitchBands = [];
         for (let i = 0; i < BAND_COUNT; i++) {
-          bands.push({
+          glitchBands.push({
             y0: Math.random() * H,
             height: H * (0.04 + Math.random() * 0.12),
             rShift: (Math.random() - 0.5) * 2 * MAX_SHIFT,
             bShift: (Math.random() - 0.5) * 2 * MAX_SHIFT,
           });
         }
-        return bands;
       };
 
-      // Draw a single static frame (no glitch)
-      const drawStatic = () => {
-        const pixels = pixelsRef.current;
-        buf.fill(0);
-        for (let i = 0, len = pixels.length; i < len; i++) {
-          const px = pixels[i];
-          const bx = Math.round(px.currentX);
-          const by = Math.round(px.currentY);
-          if (bx + pSize <= 0 || bx >= W || by + pSize <= 0 || by >= H) continue;
-          for (let dy = 0; dy < pSize; dy++) {
-            const py2 = by + dy;
-            if (py2 < 0 || py2 >= H) continue;
-            const rowOff = py2 * W;
-            for (let dx = 0; dx < pSize; dx++) {
-              const ppx = bx + dx;
-              if (ppx < 0 || ppx >= W) continue;
-              const idx = (rowOff + ppx) << 2;
-              buf[idx] = px.r;
-              buf[idx + 1] = px.g;
-              buf[idx + 2] = px.b;
-              buf[idx + 3] = px.a;
-            }
-          }
-        }
-        ctx.putImageData(frameData, 0, 0);
-      };
-
-      // Run a short glitch burst (rAF for ~200ms then stop)
-      const runGlitchBurst = () => {
-        if (!visibleRef.current) return;
-        const bands = generateBands();
-        const burstStart = performance.now();
-        const BURST_MS = 180;
-        let burstRaf = null;
-
-        const burstFrame = (now) => {
-          const elapsed = now - burstStart;
-          if (elapsed > BURST_MS) {
-            drawStatic();
-            return;
-          }
-          const glitchT = elapsed / BURST_MS;
-          let intensity = 0;
-          if (glitchT < 0.15) intensity = glitchT / 0.15;
-          else if (glitchT > 0.75) intensity = (1 - glitchT) / 0.25;
-          else intensity = 1;
-
-          const pixels = pixelsRef.current;
-          buf.fill(0);
-          for (let i = 0, len = pixels.length; i < len; i++) {
-            const px = pixels[i];
-            const bx = Math.round(px.currentX);
-            const by = Math.round(px.currentY);
-            if (bx + pSize <= 0 || bx >= W || by + pSize <= 0 || by >= H) continue;
-
-            let rOffsetX = 0, bOffsetX = 0;
-            for (let band = 0; band < bands.length; band++) {
-              const bnd = bands[band];
-              if (px.targetY >= bnd.y0 && px.targetY < bnd.y0 + bnd.height) {
-                rOffsetX = Math.round(bnd.rShift * intensity);
-                bOffsetX = Math.round(bnd.bShift * intensity);
-                break;
-              }
-            }
-
-            for (let dy = 0; dy < pSize; dy++) {
-              const py2 = by + dy;
-              if (py2 < 0 || py2 >= H) continue;
-              const rowOff = py2 * W;
-              for (let dx = 0; dx < pSize; dx++) {
-                const ppx = bx + dx;
-                if (ppx < 0 || ppx >= W) continue;
-                const idx = (rowOff + ppx) << 2;
-                buf[idx + 1] = px.g;
-                buf[idx + 3] = Math.max(buf[idx + 3], px.a);
-                if (rOffsetX !== 0) {
-                  const rx = ppx + rOffsetX;
-                  if (rx >= 0 && rx < W) { const rIdx = (rowOff + rx) << 2; buf[rIdx] = px.r; buf[rIdx + 3] = Math.max(buf[rIdx + 3], px.a); }
-                } else { buf[idx] = px.r; }
-                if (bOffsetX !== 0) {
-                  const bxp = ppx + bOffsetX;
-                  if (bxp >= 0 && bxp < W) { const bIdx = (rowOff + bxp) << 2; buf[bIdx + 2] = px.b; buf[bIdx + 3] = Math.max(buf[bIdx + 3], px.a); }
-                } else { buf[idx + 2] = px.b; }
-              }
-            }
-          }
-          ctx.putImageData(frameData, 0, 0);
-          burstRaf = requestAnimationFrame(burstFrame);
-        };
-        burstRaf = requestAnimationFrame(burstFrame);
-      };
-
-      // Assembly loop — runs only during assembly, then stops
-      const drawAssemblyFrame = (now) => {
+      const drawFrame = (now) => {
         const elapsed = now - startTime;
         const pixels = pixelsRef.current;
+
         buf.fill(0);
         let anyMoving = false;
 
+        const settled = phaseRef.current === "settled";
+
+        // Determine if a glitch burst is active
+        let glitchActive = false;
+        let glitchT = 0;
+        if (settled) {
+          const cyclePos = elapsed % GLITCH_INTERVAL_MS;
+          if (cyclePos < GLITCH_DURATION_MS) {
+            if (cyclePos < 16) {
+              // New burst just started — regenerate bands once
+              if (elapsed - lastBurstStart > GLITCH_INTERVAL_MS - 50) {
+                generateBands();
+                lastBurstStart = elapsed;
+              }
+            }
+            glitchActive = true;
+            glitchT = cyclePos / GLITCH_DURATION_MS; // 0 -> 1
+          }
+        }
+
+        // Intensity envelope: snap in, hold, snap out
+        let glitchIntensity = 0;
+        if (glitchActive) {
+          if (glitchT < 0.15) glitchIntensity = glitchT / 0.15;
+          else if (glitchT > 0.75) glitchIntensity = (1 - glitchT) / 0.25;
+          else glitchIntensity = 1;
+        }
+
         for (let i = 0, len = pixels.length; i < len; i++) {
           const px = pixels[i];
-          const pxDelay = px.delay * 500;
-          const progress = Math.max(0, Math.min(1, (elapsed - pxDelay) / ASSEMBLE_MS));
-          const ease = 1 - (1 - progress) ** 3;
-          px.currentX += (px.targetX - px.currentX) * ease * 0.12;
-          px.currentY += (px.targetY - px.currentY) * ease * 0.12;
-          if (Math.abs(px.currentX - px.targetX) > 0.3 || Math.abs(px.currentY - px.targetY) > 0.3) {
-            anyMoving = true;
-          } else {
-            px.currentX = px.targetX;
-            px.currentY = px.targetY;
+
+          if (!settled) {
+            const pxDelay = px.delay * 500;
+            const progress = Math.max(
+              0,
+              Math.min(1, (elapsed - pxDelay) / ASSEMBLE_MS),
+            );
+            const ease = 1 - (1 - progress) ** 3;
+            px.currentX += (px.targetX - px.currentX) * ease * 0.12;
+            px.currentY += (px.targetY - px.currentY) * ease * 0.12;
+            if (
+              Math.abs(px.currentX - px.targetX) > 0.3 ||
+              Math.abs(px.currentY - px.targetY) > 0.3
+            ) {
+              anyMoving = true;
+            } else {
+              px.currentX = px.targetX;
+              px.currentY = px.targetY;
+            }
           }
 
           const bx = Math.round(px.currentX);
           const by = Math.round(px.currentY);
-          if (bx + pSize <= 0 || bx >= W || by + pSize <= 0 || by >= H) continue;
+          if (bx + pSize <= 0 || bx >= W || by + pSize <= 0 || by >= H)
+            continue;
+
+          const g = px.g;
+          const a = px.a;
+          let r = px.r;
+          let b = px.b;
+          let rOffsetX = 0;
+          let bOffsetX = 0;
+
+          if (glitchActive && glitchIntensity > 0) {
+            for (let band = 0; band < glitchBands.length; band++) {
+              const bnd = glitchBands[band];
+              if (px.targetY >= bnd.y0 && px.targetY < bnd.y0 + bnd.height) {
+                rOffsetX = Math.round(bnd.rShift * glitchIntensity);
+                bOffsetX = Math.round(bnd.bShift * glitchIntensity);
+                break;
+              }
+            }
+          }
+
           for (let dy = 0; dy < pSize; dy++) {
             const py2 = by + dy;
             if (py2 < 0 || py2 >= H) continue;
             const rowOff = py2 * W;
+
             for (let dx = 0; dx < pSize; dx++) {
               const ppx = bx + dx;
               if (ppx < 0 || ppx >= W) continue;
               const idx = (rowOff + ppx) << 2;
-              buf[idx] = px.r;
-              buf[idx + 1] = px.g;
-              buf[idx + 2] = px.b;
-              buf[idx + 3] = px.a;
+
+              // Green channel + alpha at normal position
+              buf[idx + 1] = g;
+              buf[idx + 3] = Math.max(buf[idx + 3], a);
+
+              // Red channel shifted horizontally
+              if (rOffsetX !== 0) {
+                const rx = ppx + rOffsetX;
+                if (rx >= 0 && rx < W) {
+                  const rIdx = (rowOff + rx) << 2;
+                  buf[rIdx] = r;
+                  buf[rIdx + 3] = Math.max(buf[rIdx + 3], a);
+                }
+              } else {
+                buf[idx] = r;
+              }
+
+              // Blue channel shifted horizontally
+              if (bOffsetX !== 0) {
+                const bxp = ppx + bOffsetX;
+                if (bxp >= 0 && bxp < W) {
+                  const bIdx = (rowOff + bxp) << 2;
+                  buf[bIdx + 2] = b;
+                  buf[bIdx + 3] = Math.max(buf[bIdx + 3], a);
+                }
+              } else {
+                buf[idx + 2] = b;
+              }
             }
           }
         }
 
         ctx.putImageData(frameData, 0, 0);
-
-        if (anyMoving) {
-          animRef.current = requestAnimationFrame(drawAssemblyFrame);
-        } else {
-          // Assembly done — draw final static frame, then schedule 3 glitch bursts and stop
-          phaseRef.current = "settled";
-          drawStatic();
-          // 3 subtle glitch bursts at 2s, 4s, 6s after settling, then fully idle
-          setTimeout(runGlitchBurst, 2000);
-          setTimeout(runGlitchBurst, 4000);
-          setTimeout(runGlitchBurst, 6500);
-        }
+        return anyMoving;
       };
 
-      animRef.current = requestAnimationFrame(drawAssemblyFrame);
+      const loop = (now) => {
+        if (!visibleRef.current) {
+          animRef.current = requestAnimationFrame(loop);
+          return;
+        }
+
+        const anyMoving = drawFrame(now);
+
+        if (phaseRef.current === "assembling" && !anyMoving) {
+          phaseRef.current = "settled";
+        }
+
+        animRef.current = requestAnimationFrame(loop);
+      };
+
+      drawFrame(startTime);
+      animRef.current = requestAnimationFrame(loop);
     };
 
     init();

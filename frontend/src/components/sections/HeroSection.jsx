@@ -494,9 +494,16 @@ export default function HeroSection() {
               aspectRatio: "3 / 4",
               position: "relative",
               zIndex: 2,
+              overflow: "hidden",
             }}
           >
-            {showCanvas && <PixelCanvas src="/logo_2.png" anchor="center" />}
+            {showCanvas && (
+              <PixelCanvas
+                src="/logo_2.png"
+                anchor="center"
+                style={{ width: "100%", height: "100%" }}
+              />
+            )}
           </div>
 
           {/* 3. Tags: slide in from left, each from further behind previous */}
