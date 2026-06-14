@@ -24,7 +24,7 @@ export default function ProjectRow({
         {num}
       </div>
       <div>
-        <div className="font-playfair text-[28px] font-bold tracking-tight max-[960px]:text-xl">
+        <div className="font-PT-serif text-[28px] font-bold tracking-tight max-[960px]:text-xl">
           {title}
         </div>
         <div className="text-xs font-mono text-ink-3 leading-relaxed mt-1 max-w-[320px]">

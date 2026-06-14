@@ -36,7 +36,7 @@ export default function SkillCard({
       >
         {category}
       </div>
-      <div className="font-playfair text-[22px] font-bold tracking-tight mb-5 leading-snug">
+      <div className="font-PT-serif text-[22px] font-bold tracking-tight mb-5 leading-snug">
         {title}
       </div>
       <div className="flex flex-wrap gap-[7px]">
@@ -49,7 +49,7 @@ export default function SkillCard({
 
       {/* Large background index number with pixelFlicker animation */}
       <div
-        className="font-playfair text-[80px] font-black leading-none tracking-tighter absolute right-6 bottom-3"
+        className="font-PT-serif text-[80px] font-black leading-none tracking-tighter absolute right-6 bottom-3"
         style={{
           opacity: 0.08,
           animation: "pixelFlicker 6s ease-in-out infinite",

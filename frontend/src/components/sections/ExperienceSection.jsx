@@ -16,7 +16,7 @@ export default function ExperienceSection() {
         </SectionNumber>
         <ScrollReveal>
           <h2
-            className="font-playfair font-bold leading-none"
+            className="font-PT-serif font-bold leading-none"
             style={{
               fontSize: "clamp(48px, 6vw, 80px)",
               letterSpacing: "-3px",

@@ -394,7 +394,7 @@ export default function Navbar() {
                     <a
                       href={link.href}
                       onClick={(e) => handleNavClick(e, link.href)}
-                      className="font-playfair font-bold italic no-underline flex items-baseline gap-4"
+                      className="font-PT-serif font-bold italic no-underline flex items-baseline gap-4"
                       style={{
                         fontSize: "clamp(32px, 11vw, 60px)",
                         color: "#F5F2EB",

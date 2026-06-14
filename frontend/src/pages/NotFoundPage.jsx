@@ -4,12 +4,12 @@ export default function NotFoundPage() {
   return (
     <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
       <div
-        className="font-playfair font-black text-cream-3 leading-none mb-6"
+        className="font-PT-serif font-black text-cream-3 leading-none mb-6"
         style={{ fontSize: 'clamp(120px, 20vw, 300px)', letterSpacing: '-8px' }}
       >
         404
       </div>
-      <h1 className="font-playfair text-4xl font-black tracking-tight mb-4">
+      <h1 className="font-PT-serif text-4xl font-black tracking-tight mb-4">
         Page not <em className="italic text-ink-3">found.</em>
       </h1>
       <p className="text-ink-3 text-base font-light mb-10 max-w-md">

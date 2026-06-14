@@ -58,7 +58,7 @@ export default function ContactSection() {
           </SectionNumber>
           <ScrollReveal>
             <h2
-              className="font-playfair font-bold leading-none mb-8"
+              className="font-PT-serif font-bold leading-none mb-8"
               style={{
                 fontSize: "clamp(52px, 6vw, 80px)",
                 letterSpacing: "-3.5px",

@@ -32,7 +32,7 @@ export default function AboutSection() {
           </SectionNumber>
           <ScrollReveal>
             <h2
-              className="font-playfair font-bold leading-[1.05] mb-7"
+              className="font-PT-serif font-bold leading-[1.05] mb-7"
               style={{
                 fontSize: "clamp(40px, 5vw, 64px)",
                 letterSpacing: "-2.5px",
