@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import HeroSection from "../components/sections/HeroSection";
 import AboutSection from "../components/sections/AboutSection";
 import SkillsSection from "../components/sections/SkillsSection";
@@ -10,7 +11,13 @@ import GridBackgroundDemo from "@/components/ui/grid-background-demo";
 export default function HomePage() {
   return (
     <>
-      <GridBackgroundDemo />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 1.5 }}
+      >
+        <GridBackgroundDemo />
+      </motion.div>
       <HeroSection />
       <AboutSection />
       <SkillsSection />

@@ -10,15 +10,15 @@ import Tag from "../ui/Tag";
 import PixelCanvas from "../ui/PixelCanvas";
 import { SITE_CONFIG } from "../../constants/data";
 
-const HERO_DELAY = 0.15;
-const EASE_EXPO = [0.22, 1, 0.36, 1];
+const HERO_DELAY = 1.2;
+const EASE_EXPO = [0.6, 2, 0.76, 1];
 
 const T = {
-  label: HERO_DELAY,
-  heading: HERO_DELAY + 0.15,
-  tags: HERO_DELAY + 0.15 + 0.7,
-  description: HERO_DELAY + 0.15 + 0.7,
-  canvas: (HERO_DELAY + 0.15 + 0.9) * 1000,
+  label: HERO_DELAY + 0.8,
+  heading: HERO_DELAY + 1.1,
+  tags: HERO_DELAY + 0.15 + 1.8,
+  description: HERO_DELAY + 0.15 + 2.5,
+  canvas: (HERO_DELAY + 0.15 + 4) * 1000,
 };
 
 /* ── Individual parallax shape — avoids hooks-in-loop ─────────────────── */
@@ -90,6 +90,34 @@ function ParallaxShape({ shape, mx, my, baseDelay }) {
   }
 
   return <motion.div {...anim} style={{ ...shape.style, x, y }} />;
+}
+
+function TypewriterText({
+  text,
+  delay = 0,
+  charDuration = 0.02,
+  className,
+  style,
+}) {
+  const chars = text.split("");
+  return (
+    <span className={className} style={{ ...style, display: "inline-block" }}>
+      {chars.map((char, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{
+            duration: 0.01,
+            delay: delay + i * charDuration,
+          }}
+          style={{ whiteSpace: char === " " ? "pre" : "normal" }}
+        >
+          {char}
+        </motion.span>
+      ))}
+    </span>
+  );
 }
 
 /* ── Background parallax shapes ─────────────────────────────────────────── */
@@ -193,7 +221,7 @@ function HeroShapes({ mx, my }) {
           shape={shape}
           mx={mx}
           my={my}
-          baseDelay={T.tags / 1000}
+          baseDelay={T.tags / 1000 + 1.6}
         />
       ))}
     </>
@@ -257,7 +285,7 @@ export default function HeroSection() {
       <section
         id="hero"
         ref={sectionRef}
-        className="relative overflow-hidden border-b border-line"
+        className="relative overflow-hidden border-b border-line h-screen"
         style={{ perspective: "1200px" }}
       >
         {/* Noise overlay */}
@@ -286,7 +314,7 @@ export default function HeroSection() {
           {/* 1. Label from left */}
           <div style={{ overflow: "hidden" }}>
             <motion.span
-              className="font-mono text-[10px] text-ink-4 tracking-[2px] uppercase block"
+              className="font-mono text-[10px] w-62.5 text-ink-4 tracking-[2px] uppercase block"
               initial={{ x: -56, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.6, ease: EASE_EXPO, delay: T.label }}
@@ -295,20 +323,15 @@ export default function HeroSection() {
             </motion.span>
           </div>
 
-          {/* 4. Description from top — fires same time as tags */}
+          {/* 4. Description — typewriter reveal */}
           <div style={{ overflow: "hidden" }}>
-            <motion.div
-              className="max-w-[340px] text-right text-[12px] text-ink-3 leading-[1.7] font-mono font-light"
-              initial={{ y: -32, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{
-                duration: 0.6,
-                ease: EASE_EXPO,
-                delay: T.description,
-              }}
-            >
-              {SITE_CONFIG.heroDescription}
-            </motion.div>
+            <div className="max-w-[340px] text-right text-[12px] text-ink-3 leading-[2] font-mono font-light">
+              <TypewriterText
+                text={SITE_CONFIG.heroDescription}
+                delay={T.description}
+                charDuration={0.015}
+              />
+            </div>
           </div>
         </motion.div>
 
@@ -348,7 +371,7 @@ export default function HeroSection() {
         </div>
 
         {/* ═══ CONTENT WRAPPER ═══ */}
-        <div className="relative flex flex-col min-h-screen">
+        <div className="relative flex flex-col h-full">
           {/* Mobile top info */}
           <div className="md:hidden pt-24 px-6 space-y-2">
             <div style={{ overflow: "hidden" }}>
@@ -362,18 +385,13 @@ export default function HeroSection() {
               </motion.span>
             </div>
             <div style={{ overflow: "hidden" }}>
-              <motion.div
-                className="text-[12px] text-ink-3 leading-[1.7] font-mono font-light max-w-[320px]"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{
-                  duration: 0.5,
-                  ease: EASE_EXPO,
-                  delay: T.description,
-                }}
-              >
-                {SITE_CONFIG.heroDescription}
-              </motion.div>
+              <div className="text-[12px] text-ink-3 leading-[1.7] font-mono font-light max-w-[320px]">
+                <TypewriterText
+                  text={SITE_CONFIG.heroDescription}
+                  delay={T.description}
+                  charDuration={0.015}
+                />
+              </div>
             </div>
           </div>
 

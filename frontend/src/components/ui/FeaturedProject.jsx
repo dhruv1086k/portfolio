@@ -18,7 +18,7 @@ export default function FeaturedProject({
           }}
         />
         <div
-          className="font-playfair text-[200px] font-black text-cream-3 leading-none tracking-tighter italic transition-transform duration-600 group-hover:scale-112 group-hover:-rotate-4 max-[960px]:text-[120px]"
+          className="font-PT-serif text-[200px] font-black text-cream-3 leading-none tracking-tighter italic transition-transform duration-600 group-hover:scale-112 group-hover:-rotate-4 max-[960px]:text-[120px]"
           style={{ transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)" }}
         >
           {letter}
@@ -31,7 +31,7 @@ export default function FeaturedProject({
           <span className="inline-block w-5 h-px bg-ink-4" />
           {category}
         </div>
-        <h3 className="font-playfair text-[clamp(36px,4vw,56px)] font-black tracking-tight leading-[1.05] mb-5">
+        <h3 className="font-PT-serif text-[clamp(36px,4vw,56px)] font-black tracking-tight leading-[1.05] mb-5">
           {title.split(" — ").map((part, i) =>
             i === 1 ? (
               <em key={i} className="italic text-ink-3">

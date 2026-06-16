@@ -11,10 +11,10 @@ export default function AboutSection() {
   return (
     <section
       id="about"
-      className="grid grid-cols-[1fr_1.4fr] min-h-screen border-b border-line max-[960px]:grid-cols-1"
+      className="grid grid-cols-[1fr_1.4fr] min-h-screen bg-[#F5F2EC] border-b border-line max-[960px]:grid-cols-1"
     >
       {/* Left Column */}
-      <div className="px-12 pt-[100px] pb-20 border-r border-line flex flex-col justify-between sticky top-0 h-screen overflow-hidden max-[960px]:static max-[960px]:h-auto max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-10 max-[960px]:border-r-0 max-[960px]:border-b max-[960px]:border-line">
+      <div className="px-12 pt-10 pb-20 border-r border-line flex flex-col justify-center sticky top-0 h-screen overflow-hidden max-[960px]:static max-[960px]:h-auto max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-10 max-[960px]:border-r-0 max-[960px]:border-b max-[960px]:border-line">
         {/* Portrait */}
         <ScrollReveal>
           <div className="cursor-hover relative flex-1 mb-10 rounded-none flex items-center justify-center group max-[960px]:min-h-[280px]">
@@ -24,7 +24,7 @@ export default function AboutSection() {
       </div>
 
       {/* Right Column */}
-      <div className="px-16 pt-[100px] pb-20 flex flex-col justify-center gap-15 max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-15">
+      <div className="px-16 pt-[100px] pb-20 flex flex-col gap-15 max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-15">
         {/* Bio */}
         <div>
           <SectionNumber>

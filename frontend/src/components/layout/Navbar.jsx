@@ -50,7 +50,9 @@ function useScramble(text, { delay = 0, totalFrames = 12 } = {}) {
           .split("")
           .map((char, i) => {
             if (progress > i / text.length + 0.2) return char;
-            return GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+            return GLITCH_CHARS[
+              Math.floor(Math.random() * GLITCH_CHARS.length)
+            ];
           })
           .join("");
 
@@ -98,7 +100,9 @@ function useScramble(text, { delay = 0, totalFrames = 12 } = {}) {
           .split("")
           .map((char, i) => {
             if (progress > i / text.length + 0.3) return char;
-            return GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+            return GLITCH_CHARS[
+              Math.floor(Math.random() * GLITCH_CHARS.length)
+            ];
           })
           .join("");
 
@@ -171,7 +175,7 @@ function NavLink({ link, index, onBootDone }) {
             transformOrigin: "left center",
             display: "inline-block",
             lineHeight: 1,
-            transition: "color 0.3s ease, transform 0.2s ease",
+            transition: "color 0.6s ease, transform 0.2s ease",
           }}
         />
       </div>
@@ -227,7 +231,7 @@ export default function Navbar() {
             initial={{ y: "-120%", opacity: 0 }}
             animate={{ y: "0%", opacity: 1 }}
             transition={{
-              duration: 0.5,
+              duration: 1.5,
               ease: EASE_OUT_EXPO,
               delay: 0.1,
             }}
@@ -261,9 +265,9 @@ export default function Navbar() {
                   : { y: "-120%", opacity: 0 }
               }
               transition={{
-                duration: 0.5,
+                duration: 0.8,
                 ease: EASE_OUT_EXPO,
-                delay: 0.05,
+                delay: 1.2,
               }}
             >
               <PixelButton
@@ -282,7 +286,7 @@ export default function Navbar() {
         <motion.button
           initial={{ y: "-120%", opacity: 0 }}
           animate={{ y: "0%", opacity: 1 }}
-          transition={{ duration: 0.5, ease: EASE_OUT_EXPO, delay: 0.1 }}
+          transition={{ duration: 1, ease: EASE_OUT_EXPO, delay: 0.7 }}
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
@@ -385,8 +389,8 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 24 }}
                     transition={{
-                      duration: 0.4,
-                      delay: 0.35 + i * 0.06,
+                      duration: 0.8,
+                      delay: 0.8 + i * 0.06,
                       ease: EASE_OUT_EXPO,
                     }}
                     style={{
@@ -427,7 +431,7 @@ export default function Navbar() {
                   exit={{ opacity: 0, y: 16 }}
                   transition={{
                     duration: 0.35,
-                    delay: 0.35 + NAV_LINKS.length * 0.06,
+                    delay: 1.2 + NAV_LINKS.length * 0.06,
                   }}
                   className="mt-6"
                 >
@@ -446,7 +450,7 @@ export default function Navbar() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.3, delay: 0.55 }}
+                transition={{ duration: 0.5, delay: 1.85 }}
                 className="px-8 pb-8 pt-4 relative z-10"
                 style={{ borderTop: "1px solid rgba(196,80,26,0.12)" }}
               >
