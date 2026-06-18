@@ -134,5 +134,13 @@ export const ACHIEVEMENTS = [
   { icon: '🎓', title: 'Top Performer', description: 'Consistently top of BCA program — applying theory to live, production-grade work.' },
 ];
 
-export const MARQUEE_ROW_1 = ['React', 'Node.js', 'MongoDB', 'Next.js', 'TypeScript', 'Tailwind'];
-export const MARQUEE_ROW_2 = ['Full Stack', 'MERN', 'AI Integration', 'Dhruv Pal', 'Design Systems', 'Performance'];
+export const ROW_1 = ["React",
+  "Node.js",
+  "MongoDB",
+  "Next.js",
+  "TypeScript",
+  "Tailwind",];
+export const ROW_2 = ["Full Stack MERN",
+  "AI Integration",
+  "Design Systems",
+  "Performance",];

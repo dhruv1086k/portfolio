@@ -3,12 +3,12 @@ import TextPressure from "../ui/TextPressure";
 
 const PressureTextComponent = () => {
   return (
-    <div style={{ position: "relative", height: "350px" }}>
+    <div style={{ position: "relative", height: "350px", marginTop: "20px" }}>
       <TextPressure
         text="Developer"
         flex
         alpha={false}
-        stroke={true}
+        stroke={false}
         width
         weight
         italic
