@@ -7,6 +7,7 @@ import MarqueeSection from "../components/sections/MarqueeSection";
 import ExperienceSection from "../components/sections/ExperienceSection";
 import ContactSection from "../components/sections/ContactSection";
 import GridBackgroundDemo from "@/components/ui/grid-background-demo";
+import PressureTextComponent from "@/components/sections/PressureText";
 
 export default function HomePage() {
   return (
@@ -19,6 +20,7 @@ export default function HomePage() {
         <GridBackgroundDemo />
       </motion.div>
       <HeroSection />
+      <PressureTextComponent />
       <AboutSection />
       <SkillsSection />
       <ProjectsSection />

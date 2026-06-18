@@ -6,6 +6,7 @@ import TimelineItem from "../ui/TimelineItem";
 import { SITE_CONFIG, SPECIALTIES, TIMELINE } from "../../constants/data";
 import { CometCard } from "../ui/comet-card";
 import CometCardDemo from "../ui/comet-card-demo";
+import Shuffle from "../ui/ShuffleText";
 
 export default function AboutSection() {
   return (
@@ -40,7 +41,25 @@ export default function AboutSection() {
             >
               Passionate
               <br />
-              about <em className="italic text-accent font-pixelify">craft.</em>
+              about{" "}
+              <Shuffle
+                tag="em"
+                text="craft."
+                className="text-accent font-pixelify not-italic"
+                style={{ fontSize: "4rem" }}
+                shuffleDirection="right"
+                duration={0.35}
+                animationMode="evenodd"
+                shuffleTimes={1}
+                ease="power3.out"
+                stagger={0.03}
+                threshold={0.1}
+                triggerOnce={false}
+                triggerOnHover
+                respectReducedMotion={true}
+                loop={false}
+                loopDelay={0}
+              />
             </h2>
           </ScrollReveal>
           {SITE_CONFIG.bio.map((paragraph, i) => (

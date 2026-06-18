@@ -9,8 +9,10 @@ import { useEffect, useRef, useState } from "react";
 import Tag from "../ui/Tag";
 import PixelCanvas from "../ui/PixelCanvas";
 import { SITE_CONFIG } from "../../constants/data";
+import Shuffle from "../ui/ShuffleText";
+import TextPressure from "../ui/TextPressure";
 
-const HERO_DELAY = 1.2;
+const HERO_DELAY = 1.4;
 const EASE_EXPO = [0.6, 2, 0.76, 1];
 
 const T = {
