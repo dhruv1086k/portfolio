@@ -1,14 +1,31 @@
 import ScrollReveal from "../common/ScrollReveal";
 import SectionNumber from "../common/SectionNumber";
-import MetricCard from "../ui/MetricCard";
 import SpecialtyCard from "../ui/SpecialtyCard";
 import TimelineItem from "../ui/TimelineItem";
 import { SITE_CONFIG, SPECIALTIES, TIMELINE } from "../../constants/data";
-import { CometCard } from "../ui/comet-card";
-import CometCardDemo from "../ui/comet-card-demo";
 import Shuffle from "../ui/ShuffleText";
+import { useEffect, useRef, useState } from "react";
+import LanyardCard from "../ui/Lanyard";
 
 export default function AboutSection() {
+  const portraitRef = useRef(null);
+
+  useEffect(() => {
+    const el = portraitRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShowLanyard(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       id="about"
@@ -16,12 +33,8 @@ export default function AboutSection() {
     >
       {/* Left Column */}
       <div className="px-12 pt-10 pb-20 border-r border-line flex flex-col justify-center sticky top-0 h-screen overflow-hidden max-[960px]:static max-[960px]:h-auto max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-10 max-[960px]:border-r-0 max-[960px]:border-b max-[960px]:border-line">
-        {/* Portrait */}
-        <ScrollReveal>
-          <div className="cursor-hover relative flex-1 mb-10 rounded-none flex items-center justify-center group max-[960px]:min-h-[280px]">
-            <CometCardDemo />
-          </div>
-        </ScrollReveal>
+        {/* Lanyard */}
+        <LanyardCard />
       </div>
 
       {/* Right Column */}
