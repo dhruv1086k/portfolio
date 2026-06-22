@@ -6,6 +6,8 @@ import { SITE_CONFIG, SPECIALTIES, TIMELINE } from "../../constants/data";
 import Shuffle from "../ui/ShuffleText";
 import { useEffect, useRef, useState } from "react";
 import LanyardCard from "../ui/Lanyard";
+import BlurText from "../ui/BlurText";
+import ScrollRevealBits from "../ui/ScrollRevealBits";
 
 export default function AboutSection() {
   const portraitRef = useRef(null);
@@ -42,7 +44,13 @@ export default function AboutSection() {
         {/* Bio */}
         <div>
           <SectionNumber>
-            <span className="font-mono text-[10px]">[02] — About</span>
+            <BlurText
+              text="[02] — About"
+              delay={500}
+              animateBy="words"
+              direction="top"
+              className="font-mono text-[10px]"
+            />
           </SectionNumber>
           <ScrollReveal variant="heading">
             <h2
@@ -76,13 +84,20 @@ export default function AboutSection() {
             </h2>
           </ScrollReveal>
           {SITE_CONFIG.bio.map((paragraph, i) => (
-            <ScrollReveal key={i} delay={0.08 * (i + 1)} variant="text">
-              <p
-                className="text-[14px] font-mono text-ink-2 leading-[1.8] font-light max-w-[540px]"
-                style={{ marginTop: i > 0 ? "16px" : undefined }}
-                dangerouslySetInnerHTML={{ __html: paragraph }}
-              />
-            </ScrollReveal>
+            <div
+              key={i}
+              className="text-[14px] font-mono text-ink-2 leading-[1.8] font-light max-w-[540px]"
+              style={{ marginTop: i > 0 ? "16px" : undefined }}
+            >
+              <ScrollRevealBits
+                baseOpacity={0.1}
+                enableBlur
+                baseRotation={3}
+                blurStrength={4}
+              >
+                {paragraph.replace(/<[^>]+>/g, "")}
+              </ScrollRevealBits>
+            </div>
           ))}
         </div>
 

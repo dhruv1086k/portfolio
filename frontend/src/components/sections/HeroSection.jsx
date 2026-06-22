@@ -9,8 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import Tag from "../ui/Tag";
 import PixelCanvas from "../ui/PixelCanvas";
 import { SITE_CONFIG } from "../../constants/data";
-import Shuffle from "../ui/ShuffleText";
-import TextPressure from "../ui/TextPressure";
+import CircularText from "../ui/CircularText";
 
 const HERO_DELAY = 1.4;
 const EASE_EXPO = [0.6, 2, 0.76, 1];
@@ -21,6 +20,7 @@ const T = {
   tags: HERO_DELAY + 0.15 + 1.8,
   description: HERO_DELAY + 0.15 + 2.5,
   canvas: (HERO_DELAY + 0.15 + 4) * 1000,
+  CircularText: HERO_DELAY + 5,
 };
 
 /* ── Individual parallax shape — avoids hooks-in-loop ─────────────────── */
@@ -362,6 +362,23 @@ export default function HeroSection() {
             zIndex: 1,
           }}
         >
+          <motion.div
+            className="absolute -left-16 bottom-6 -z-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{
+              duration: 0.6,
+              ease: EASE_EXPO,
+              delay: T.CircularText,
+            }}
+          >
+            <CircularText
+              text="DHRUV*PAL*DEVELOPER*"
+              onHover="speedUp"
+              spinDuration={20}
+              className=""
+            />
+          </motion.div>
           {/* 5. Canvas mounts late — pixel assembly IS the entrance */}
           {showCanvas && (
             <PixelCanvas

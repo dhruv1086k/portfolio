@@ -3,6 +3,13 @@
 @import "tailwindcss";
 @import "@fontsource-variable/geist";
 
+@font-face {
+  font-family: "ModernCosmo";
+  src: url("/Modern Cosmo.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /* ── Custom Theme (Tailwind v4 CSS-first config) ── */
@@ -23,6 +30,7 @@
   --font-pixel: "Press Start 2P", "JetBrains Mono", monospace;
   --font-pixelify: "Pixelify Sans", "Playfair Display", sans-serif;
   --font-PT-serif: "PT Serif", serif;
+  --font-cosmo: "ModernCosmo", serif;
 
   --animate-blink: blink 2s infinite;
   --animate-marquee: marquee 30s linear infinite;
@@ -74,7 +82,8 @@ html {
   font-size: 16px;
 }
 
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 

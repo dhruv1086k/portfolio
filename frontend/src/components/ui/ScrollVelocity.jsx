@@ -109,7 +109,7 @@ export const ScrollVelocity = ({
     for (let i = 0; i < (numCopies ?? 1); i++) {
       spans.push(
         <span
-          className={`flex-shrink-0 inline-flex items-center ${className}`}
+          className={`flex-shrink-0 inline-flex items-center font-mono ${className}`}
           key={i}
           ref={i === 0 ? copyRef : null}
         >
