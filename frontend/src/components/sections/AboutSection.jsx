@@ -1,10 +1,8 @@
 import ScrollReveal from "../common/ScrollReveal";
-import SectionNumber from "../common/SectionNumber";
 import SpecialtyCard from "../ui/SpecialtyCard";
-import TimelineItem from "../ui/TimelineItem";
-import { SITE_CONFIG, SPECIALTIES, TIMELINE } from "../../constants/data";
+import { SITE_CONFIG, SPECIALTIES } from "../../constants/data";
 import Shuffle from "../ui/ShuffleText";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import LanyardCard from "../ui/Lanyard";
 import BlurText from "../ui/BlurText";
 import ScrollRevealBits from "../ui/ScrollRevealBits";
@@ -43,15 +41,6 @@ export default function AboutSection() {
       <div className="px-16 pt-[100px] pb-20 flex flex-col gap-15 max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-15">
         {/* Bio */}
         <div>
-          <SectionNumber>
-            <BlurText
-              text="[02] — About"
-              delay={500}
-              animateBy="words"
-              direction="top"
-              className="font-mono text-[10px]"
-            />
-          </SectionNumber>
           <ScrollReveal variant="heading">
             <h2
               className="font-PT-serif font-bold leading-[1.05] mb-7"
@@ -60,9 +49,21 @@ export default function AboutSection() {
                 letterSpacing: "-2.5px",
               }}
             >
-              Passionate
+              <BlurText
+                text="Passionate"
+                animateBy="words"
+                direction="top"
+                delay={100}
+                className="font-PT-serif font-bold leading-[1.05] inline"
+              />
               <br />
-              about{" "}
+              <BlurText
+                text="about "
+                animateBy="words"
+                direction="top"
+                delay={200}
+                className="font-PT-serif font-bold leading-[1.05] inline"
+              />{" "}
               <Shuffle
                 tag="em"
                 text="craft."
@@ -106,20 +107,6 @@ export default function AboutSection() {
           <div className="grid grid-cols-2 gap-3">
             {SPECIALTIES.map((s) => (
               <SpecialtyCard key={s.title} title={s.title} sub={s.sub} />
-            ))}
-          </div>
-        </ScrollReveal>
-
-        {/* Timeline */}
-        <ScrollReveal delay={0.2} variant="card">
-          <div className="border-t border-line">
-            {TIMELINE.map((item) => (
-              <TimelineItem
-                key={item.title}
-                year={item.year}
-                title={item.title}
-                sub={item.sub}
-              />
             ))}
           </div>
         </ScrollReveal>

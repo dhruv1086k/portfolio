@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import PixelButton from "../ui/PixelButton";
 import { useLenis } from "../common/SmoothScroll";
+import GridLogo from "../ui/GridLogo";
 
 const NAV_LINKS = [
   { label: "About", href: "/#about" },
@@ -237,7 +238,9 @@ export default function Navbar() {
             }}
           >
             <Link to="/" className="flex items-center no-underline">
-              <img className="w-14" src="/logo.png" alt="logo" />
+              <Link to="/" className="flex items-center no-underline">
+                <GridLogo />
+              </Link>
             </Link>
           </motion.div>
         </div>
