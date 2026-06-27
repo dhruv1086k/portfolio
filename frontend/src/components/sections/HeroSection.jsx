@@ -10,20 +10,10 @@ import Tag from "../ui/Tag";
 import PixelCanvas from "../ui/PixelCanvas";
 import { SITE_CONFIG } from "../../constants/data";
 import CircularText from "../ui/CircularText";
+import { useLoader } from "../../context/LoaderContext";
 
-const HERO_DELAY = 1.4;
 const EASE_EXPO = [0.6, 2, 0.76, 1];
 
-const T = {
-  label: HERO_DELAY + 0.8,
-  heading: HERO_DELAY + 1.1,
-  tags: HERO_DELAY + 0.15 + 1.8,
-  description: HERO_DELAY + 0.15 + 2.5,
-  canvas: (HERO_DELAY + 0.15 + 4) * 1000,
-  CircularText: HERO_DELAY + 5,
-};
-
-/* ── Individual parallax shape — avoids hooks-in-loop ─────────────────── */
 function ParallaxShape({ shape, mx, my, baseDelay }) {
   const x = useTransform(mx, [-0.5, 0.5], shape.dx);
   const y = useTransform(my, [-0.5, 0.5], shape.dy);
@@ -109,10 +99,7 @@ function TypewriterText({
           key={i}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{
-            duration: 0.01,
-            delay: delay + i * charDuration,
-          }}
+          transition={{ duration: 0.01, delay: delay + i * charDuration }}
           style={{ whiteSpace: char === " " ? "pre" : "normal" }}
         >
           {char}
@@ -122,8 +109,7 @@ function TypewriterText({
   );
 }
 
-/* ── Background parallax shapes ─────────────────────────────────────────── */
-function HeroShapes({ mx, my }) {
+function HeroShapes({ mx, my, baseDelay }) {
   const shapes = [
     {
       dx: [-22, 22],
@@ -223,19 +209,27 @@ function HeroShapes({ mx, my }) {
           shape={shape}
           mx={mx}
           my={my}
-          baseDelay={T.tags / 1000 + 1.6}
+          baseDelay={baseDelay}
         />
       ))}
     </>
   );
 }
 
-/* ── Main HeroSection ────────────────────────────────────────────────────── */
 export default function HeroSection() {
   const sectionRef = useRef(null);
   const [showCanvas, setShowCanvas] = useState(false);
 
-  // Scroll-linked parallax for depth
+  const { loaderDone } = useLoader();
+  const T = {
+    label: 0.5,
+    heading: 0.7,
+    tags: 1.2,
+    description: 1.7,
+    canvas: 2200, // ms
+    circularText: 2.4,
+  };
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
@@ -245,9 +239,10 @@ export default function HeroSection() {
   const shapesY = useTransform(scrollYProgress, [0, 1], [0, 80]);
 
   useEffect(() => {
+    if (!loaderDone) return;
     const t = setTimeout(() => setShowCanvas(true), T.canvas);
     return () => clearTimeout(t);
-  }, []);
+  }, [loaderDone]);
 
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
@@ -282,6 +277,10 @@ export default function HeroSection() {
     };
   }, [rawX, rawY]);
 
+  // Don't render hero content at all until loader is done.
+  // This means animations always start fresh — no 9999 sentinel needed.
+  if (!loaderDone) return <div className="h-screen" />;
+
   return (
     <div style={{ position: "relative" }}>
       <section
@@ -290,7 +289,6 @@ export default function HeroSection() {
         className="relative overflow-hidden border-b border-line h-screen"
         style={{ perspective: "1200px" }}
       >
-        {/* Noise overlay */}
         <div
           aria-hidden="true"
           className="absolute inset-0 pointer-events-none"
@@ -303,7 +301,6 @@ export default function HeroSection() {
           }}
         />
 
-        {/* ═══ DESKTOP: Top bar ═══ */}
         <motion.div
           className="hidden md:flex absolute top-[120px] left-12 right-12 items-start justify-between"
           style={{
@@ -313,7 +310,6 @@ export default function HeroSection() {
             opacity: heroOpacity,
           }}
         >
-          {/* 1. Label from left */}
           <div style={{ overflow: "hidden" }}>
             <motion.span
               className="font-mono text-[10px] w-62.5 text-ink-4 tracking-[2px] uppercase block"
@@ -324,8 +320,6 @@ export default function HeroSection() {
               [09.03] - DHRUV PAL
             </motion.span>
           </div>
-
-          {/* 4. Description — typewriter reveal */}
           <div style={{ overflow: "hidden" }}>
             <div className="max-w-[340px] text-right text-[12px] text-ink-3 leading-[2] font-mono font-light">
               <TypewriterText
@@ -337,7 +331,6 @@ export default function HeroSection() {
           </div>
         </motion.div>
 
-        {/* ═══ DESKTOP: Shapes + Pixel canvas ═══ */}
         <motion.div
           className="hidden md:block absolute"
           style={{
@@ -349,7 +342,7 @@ export default function HeroSection() {
             y: shapesY,
           }}
         >
-          <HeroShapes mx={mx} my={my} />
+          <HeroShapes mx={mx} my={my} baseDelay={T.tags / 1000 + 0.4} />
         </motion.div>
 
         <div
@@ -369,7 +362,7 @@ export default function HeroSection() {
             transition={{
               duration: 0.6,
               ease: EASE_EXPO,
-              delay: T.CircularText,
+              delay: T.circularText,
             }}
           >
             <CircularText
@@ -379,7 +372,6 @@ export default function HeroSection() {
               className=""
             />
           </motion.div>
-          {/* 5. Canvas mounts late — pixel assembly IS the entrance */}
           {showCanvas && (
             <PixelCanvas
               src="/logo_2.png"
@@ -389,9 +381,7 @@ export default function HeroSection() {
           )}
         </div>
 
-        {/* ═══ CONTENT WRAPPER ═══ */}
         <div className="relative flex flex-col h-full">
-          {/* Mobile top info */}
           <div className="md:hidden pt-24 px-6 space-y-2">
             <div style={{ overflow: "hidden" }}>
               <motion.span
@@ -416,7 +406,6 @@ export default function HeroSection() {
 
           <div className="flex-1 min-h-6 md:min-h-0" />
 
-          {/* 2. Heading — each line rises one by one from bottom */}
           <motion.div
             className="font-PT-serif font-bold leading-[0.95] mb-6 md:mb-12 px-6 sm:px-8 md:px-12 md:max-w-[55%]"
             style={{
@@ -429,7 +418,6 @@ export default function HeroSection() {
               opacity: heroOpacity,
             }}
           >
-            {/* Line 1: "I build" */}
             <motion.div
               style={{
                 x: headingX,
@@ -458,7 +446,6 @@ export default function HeroSection() {
               </div>
             </motion.div>
 
-            {/* Line 2: "digital" */}
             <motion.div
               style={{
                 x: headingX,
@@ -493,7 +480,6 @@ export default function HeroSection() {
               </div>
             </motion.div>
 
-            {/* Line 3: "products." */}
             <motion.div
               style={{
                 x: headingX,
@@ -523,7 +509,6 @@ export default function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* Mobile pixel image */}
           <div
             className="block md:hidden mx-auto mb-6"
             style={{
@@ -543,7 +528,6 @@ export default function HeroSection() {
             )}
           </div>
 
-          {/* 3. Tags: slide in from left, each from further behind previous */}
           <motion.div
             className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 sm:gap-4 px-6 sm:px-8 md:px-12 pb-10 md:pb-16"
             style={{

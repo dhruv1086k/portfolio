@@ -178,7 +178,6 @@ export default function Footer() {
           © {new Date().getFullYear()} Dhruv Pal — All rights reserved
         </p>
       </div>
-
     </footer>
   );
 }

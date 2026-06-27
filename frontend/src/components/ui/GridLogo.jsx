@@ -1,14 +1,11 @@
 import { useEffect, useRef } from "react";
 import anime from "animejs/lib/anime.es.js";
 
-const SQ = 10;
-const GAP = 2;
-
 // Floating square rests UP and to the RIGHT of its grid slot (col=2, row=0)
 const FLOAT_DX = 12;
 const FLOAT_DY = -12;
 
-export default function GridLogo() {
+export default function GridLogo({ SQ, GAP }) {
   const floatingRef = useRef(null);
   const gridRefs = useRef([]);
   const isHovered = useRef(false);

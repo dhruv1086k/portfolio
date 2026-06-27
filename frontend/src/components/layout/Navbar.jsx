@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import PixelButton from "../ui/PixelButton";
 import { useLenis } from "../common/SmoothScroll";
 import GridLogo from "../ui/GridLogo";
+import { useLoader } from "../../context/LoaderContext";
 
 const NAV_LINKS = [
   { label: "About", href: "/#about" },
@@ -17,18 +18,15 @@ const GLITCH_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?/01XYZ#%&";
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1];
 const EASE_IN_OUT = [0.65, 0, 0.35, 1];
 
-/* ── Ref-based scramble — zero React re-renders during animation ─────── */
 function useScramble(text, { delay = 0, totalFrames = 12 } = {}) {
   const spanRef = useRef(null);
   const isBootDone = useRef(false);
   const rafRef = useRef(null);
 
-  // Boot scramble — runs once on mount
   useEffect(() => {
     const span = spanRef.current;
     if (!span) return;
 
-    // Show glitch immediately
     span.textContent = text
       .split("")
       .map(() => GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)])
@@ -40,7 +38,7 @@ function useScramble(text, { delay = 0, totalFrames = 12 } = {}) {
       span.style.color = "#C4501A";
       let frame = 0;
       const startTime = performance.now();
-      const frameDuration = (totalFrames * 38) / totalFrames; // ~38ms per frame equiv
+      const frameDuration = (totalFrames * 38) / totalFrames;
 
       const animate = (now) => {
         const elapsed = now - startTime;
@@ -74,7 +72,6 @@ function useScramble(text, { delay = 0, totalFrames = 12 } = {}) {
     };
   }, []);
 
-  // Hover scramble — also ref-based, zero re-renders
   const triggerHoverScramble = useCallback(
     (toPixel) => {
       if (!isBootDone.current) return;
@@ -121,7 +118,6 @@ function useScramble(text, { delay = 0, totalFrames = 12 } = {}) {
   return { spanRef, triggerHoverScramble, isBootDone };
 }
 
-/* ── Single nav link with ref-based scramble ──────────────────────────── */
 function NavLink({ link, index, onBootDone }) {
   const LOGO_DURATION = 400;
   const LINK_STAGGER = 120;
@@ -131,10 +127,8 @@ function NavLink({ link, index, onBootDone }) {
     totalFrames: 12,
   });
 
-  // Notify parent when boot is done
   useEffect(() => {
     const checkDone = setInterval(() => {
-      // The scramble sets isBootDone.current = true when done
       if (spanRef.current && spanRef.current.style.color === "") {
         onBootDone();
         clearInterval(checkDone);
@@ -184,14 +178,15 @@ function NavLink({ link, index, onBootDone }) {
   );
 }
 
-/* ── Navbar ─────────────────────────────────────────────────────────────── */
-export default function Navbar() {
+export default function Navbar({ navLogoRef }) {
   const location = useLocation();
   const isHome = location.pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
   const [allBootDone, setAllBootDone] = useState(false);
   const bootCountRef = useRef(0);
   const lenisRef = useLenis();
+
+  const { loaderDone } = useLoader();
 
   const handleBootDone = useCallback(() => {
     bootCountRef.current += 1;
@@ -226,52 +221,53 @@ export default function Navbar() {
           transform: "translateZ(0)",
         }}
       >
-        {/* ── Logo: drops from above ── */}
-        <div style={{ overflow: "hidden", paddingBottom: 2 }}>
+        {/* Logo — drops in after loaderDone */}
+        <div ref={navLogoRef} style={{ overflow: "hidden", paddingBottom: 2 }}>
           <motion.div
             initial={{ y: "-120%", opacity: 0 }}
-            animate={{ y: "0%", opacity: 1 }}
-            transition={{
-              duration: 1.5,
-              ease: EASE_OUT_EXPO,
-              delay: 0.1,
-            }}
+            animate={
+              loaderDone ? { y: "0%", opacity: 1 } : { y: "-120%", opacity: 0 }
+            }
+            transition={{ duration: 0.7, ease: EASE_OUT_EXPO, delay: 0.05 }}
           >
             <Link to="/" className="flex items-center no-underline">
-              <Link to="/" className="flex items-center no-underline">
-                <GridLogo />
-              </Link>
+              <GridLogo SQ={10} GAP={2} />
             </Link>
           </motion.div>
         </div>
 
-        {/* ── Desktop nav ── */}
+        {/* Desktop nav — gated on loaderDone */}
         <div className="hidden min-[961px]:flex items-center gap-9">
           <ul className="flex gap-8 list-none m-0 p-0">
-            {NAV_LINKS.map((link, i) => (
-              <NavLink
-                key={link.label}
-                link={link}
-                index={i}
-                onBootDone={handleBootDone}
-              />
-            ))}
+            {NAV_LINKS.map((link, i) =>
+              loaderDone ? (
+                <NavLink
+                  key={link.label}
+                  link={link}
+                  index={i}
+                  onBootDone={handleBootDone}
+                />
+              ) : (
+                <li
+                  key={link.label}
+                  style={{
+                    minWidth: `${link.label.length * 12 + 10}px`,
+                    height: 32,
+                  }}
+                />
+              ),
+            )}
           </ul>
 
-          {/* ── Resume: drops from above after all links done ── */}
           <div style={{ overflow: "hidden", paddingBottom: 2 }}>
             <motion.div
               initial={{ y: "-120%", opacity: 0 }}
               animate={
-                allBootDone
+                loaderDone && allBootDone
                   ? { y: "0%", opacity: 1 }
                   : { y: "-120%", opacity: 0 }
               }
-              transition={{
-                duration: 0.8,
-                ease: EASE_OUT_EXPO,
-                delay: 1.2,
-              }}
+              transition={{ duration: 0.8, ease: EASE_OUT_EXPO, delay: 0.6 }}
             >
               <PixelButton
                 href="#projects"
@@ -285,11 +281,13 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* ── Hamburger ── */}
+        {/* Hamburger — gated on loaderDone */}
         <motion.button
           initial={{ y: "-120%", opacity: 0 }}
-          animate={{ y: "0%", opacity: 1 }}
-          transition={{ duration: 1, ease: EASE_OUT_EXPO, delay: 0.7 }}
+          animate={
+            loaderDone ? { y: "0%", opacity: 1 } : { y: "-120%", opacity: 0 }
+          }
+          transition={{ duration: 1, ease: EASE_OUT_EXPO, delay: 0.2 }}
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
@@ -339,7 +337,7 @@ export default function Navbar() {
         </motion.button>
       </nav>
 
-      {/* ── Mobile menu ─────────────────────────────────────────────────── */}
+      {/* Mobile menu */}
       <AnimatePresence>
         {menuOpen && (
           <div className="fixed inset-0 z-[90] min-[961px]:hidden">
@@ -365,7 +363,6 @@ export default function Navbar() {
                 }}
               />
             ))}
-
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -383,7 +380,6 @@ export default function Navbar() {
                   pointerEvents: "none",
                 }}
               />
-
               <div className="flex-1 flex flex-col justify-center px-8 gap-1 relative z-10">
                 {NAV_LINKS.map((link, i) => (
                   <motion.div
@@ -427,7 +423,6 @@ export default function Navbar() {
                     </a>
                   </motion.div>
                 ))}
-
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -448,7 +443,6 @@ export default function Navbar() {
                   </PixelButton>
                 </motion.div>
               </div>
-
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
