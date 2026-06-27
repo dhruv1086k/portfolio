@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import anime from "animejs/lib/anime.es.js";
 
-const SQ = 18;
-const GAP = 5;
+const SQ = 10;
+const GAP = 2;
 
 // Floating square rests UP and to the RIGHT of its grid slot (col=2, row=0)
 const FLOAT_DX = 12;
@@ -161,7 +161,7 @@ export default function GridLogo() {
                 style={{
                   width: SQ,
                   height: SQ,
-                  borderRadius: 4,
+                  borderRadius: 2,
                   border: "2px solid #f97316",
                   background: "transparent",
                   boxSizing: "border-box",
@@ -178,7 +178,7 @@ export default function GridLogo() {
               style={{
                 width: SQ,
                 height: SQ,
-                borderRadius: 4,
+                borderRadius: 2,
                 background: "#f97316",
                 willChange: "transform",
               }}
