@@ -32,7 +32,7 @@ export default function AboutSection() {
       className="grid grid-cols-[1fr_1.4fr] min-h-screen bg-[#F5F2EC] border-b border-line max-[960px]:grid-cols-1"
     >
       {/* Left Column */}
-      <div className="px-12 pt-10 pb-20 border-r border-line flex flex-col justify-center sticky top-0 h-screen overflow-hidden max-[960px]:static max-[960px]:h-auto max-[960px]:px-6 max-[960px]:pt-15 max-[960px]:pb-10 max-[960px]:border-r-0 max-[960px]:border-b max-[960px]:border-line">
+      <div className="px-12 pt-10 pb-20 border-r border-line flex flex-col justify-center sticky top-0 h-screen overflow-hidden max-[960px]:static max-[960px]:h-auto max-[960px]:px-6 max-[960px]:pt-2 max-[960px]:pb-10 max-[960px]:border-r-0 max-[960px]:border-b max-[960px]:border-line">
         {/* Lanyard */}
         <LanyardCard />
       </div>

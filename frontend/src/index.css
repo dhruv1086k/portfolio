@@ -129,17 +129,8 @@ body {
 
 /* ── Scrollbar Styling ── */
 ::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-cream);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-ink-4);
-  border-radius: 0; /* ◼ square scrollbar thumb */
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ink-3);
+  /* width: 4px; */
+  display: none;
 }
 
 /* ── Selection ── */

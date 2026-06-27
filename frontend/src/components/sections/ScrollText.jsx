@@ -3,7 +3,13 @@ import ScrollFloat from "../ui/ScrollFloat";
 
 const ScrollTextComponent = () => {
   return (
-    <div style={{ position: "relative", height: "350px", marginTop: "20px" }}>
+    <div
+      style={{
+        position: "relative",
+        height: "clamp(120px, 20vw, 350px)",
+        marginTop: "clamp(8px, 2vw, 20px)",
+      }}
+    >
       <ScrollFloat
         animationDuration={1}
         ease="back.inOut(2)"
