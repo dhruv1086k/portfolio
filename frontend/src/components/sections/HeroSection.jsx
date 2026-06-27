@@ -112,8 +112,8 @@ function TypewriterText({
 function HeroShapes({ mx, my, baseDelay }) {
   const shapes = [
     {
-      dx: [-22, 22],
-      dy: [-14, 14],
+      dx: [-40, 40],
+      dy: [-26, 26],
       delay: 0.0,
       style: {
         position: "absolute",
@@ -127,8 +127,8 @@ function HeroShapes({ mx, my, baseDelay }) {
       },
     },
     {
-      dx: [-34, 34],
-      dy: [-22, 22],
+      dx: [-60, 60],
+      dy: [-40, 40],
       delay: 0.12,
       style: {
         position: "absolute",
@@ -142,8 +142,8 @@ function HeroShapes({ mx, my, baseDelay }) {
       },
     },
     {
-      dx: [-44, 44],
-      dy: [-28, 28],
+      dx: [-80, 80],
+      dy: [-50, 50],
       delay: 0.22,
       style: {
         position: "absolute",
@@ -157,8 +157,8 @@ function HeroShapes({ mx, my, baseDelay }) {
       },
     },
     {
-      dx: [-18, 18],
-      dy: [-30, 30],
+      dx: [-32, 32],
+      dy: [-54, 54],
       delay: 0.08,
       style: {
         position: "absolute",
@@ -171,8 +171,8 @@ function HeroShapes({ mx, my, baseDelay }) {
       },
     },
     {
-      dx: [-38, 38],
-      dy: [-24, 24],
+      dx: [-68, 68],
+      dy: [-44, 44],
       delay: 0.18,
       isCross: true,
       style: {
@@ -185,8 +185,8 @@ function HeroShapes({ mx, my, baseDelay }) {
       },
     },
     {
-      dx: [-14, 14],
-      dy: [-18, 18],
+      dx: [-26, 26],
+      dy: [-32, 32],
       delay: 0.14,
       isDotGrid: true,
       style: {
@@ -226,7 +226,7 @@ export default function HeroSection() {
     heading: 0.7,
     tags: 1.2,
     description: 1.7,
-    canvas: 2200, // ms
+    canvas: 2200,
     circularText: 2.4,
   };
 
@@ -238,47 +238,61 @@ export default function HeroSection() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const shapesY = useTransform(scrollYProgress, [0, 1], [0, 80]);
 
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const springConfig = { stiffness: 55, damping: 18, mass: 1 };
+  const mx = useSpring(rawX, springConfig);
+  const my = useSpring(rawY, springConfig);
+
+  const h1RotateX = useTransform(my, [-0.5, 0.5], [6, -6]);
+  const h1RotateY = useTransform(mx, [-0.5, 0.5], [-6, 6]);
+  const headingX = useTransform(mx, [-0.5, 0.5], [-30, 30]);
+  const headingY = useTransform(my, [-0.5, 0.5], [-20, 20]);
+  const tagsX = useTransform(mx, [-0.5, 0.5], [-30, 30]);
+  const tagsY = useTransform(my, [-0.5, 0.5], [-20, 20]);
+  const shapesContainerX = useTransform(mx, [-0.5, 0.5], [15, -15]);
+
   useEffect(() => {
     if (!loaderDone) return;
     const t = setTimeout(() => setShowCanvas(true), T.canvas);
     return () => clearTimeout(t);
   }, [loaderDone]);
 
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
-  const springConfig = { stiffness: 60, damping: 20, mass: 1 };
-  const mx = useSpring(rawX, springConfig);
-  const my = useSpring(rawY, springConfig);
-
-  const h1RotateX = useTransform(my, [-0.5, 0.5], [5, -5]);
-  const h1RotateY = useTransform(mx, [-0.5, 0.5], [-5, 5]);
-  const tagsX = useTransform(mx, [-0.5, 0.5], [12, -12]);
-  const tagsY = useTransform(my, [-0.5, 0.5], [10, -10]);
-  const headingX = useTransform(mx, [-0.5, 0.5], [-15, 15]);
-  const headingY = useTransform(my, [-0.5, 0.5], [-10, 10]);
-
+  // Listen on window so nothing can block the events
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section) return;
+
     const handleMouseMove = (e) => {
+      if (!section) return;
       const rect = section.getBoundingClientRect();
+      // Only react when cursor is inside the hero section
+      if (
+        e.clientX < rect.left ||
+        e.clientX > rect.right ||
+        e.clientY < rect.top ||
+        e.clientY > rect.bottom
+      ) {
+        rawX.set(0);
+        rawY.set(0);
+        return;
+      }
       rawX.set((e.clientX - (rect.left + rect.width / 2)) / rect.width);
       rawY.set((e.clientY - (rect.top + rect.height / 2)) / rect.height);
     };
+
     const handleMouseLeave = () => {
       rawX.set(0);
       rawY.set(0);
     };
-    section.addEventListener("mousemove", handleMouseMove);
-    section.addEventListener("mouseleave", handleMouseLeave);
-    return () => {
-      section.removeEventListener("mousemove", handleMouseMove);
-      section.removeEventListener("mouseleave", handleMouseLeave);
-    };
-  }, [rawX, rawY]);
 
-  // Don't render hero content at all until loader is done.
-  // This means animations always start fresh — no 9999 sentinel needed.
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [loaderDone, rawX, rawY]);
+
   if (!loaderDone) return <div className="h-screen" />;
 
   return (
@@ -289,6 +303,7 @@ export default function HeroSection() {
         className="relative overflow-hidden border-b border-line h-screen"
         style={{ perspective: "1200px" }}
       >
+        {/* Noise texture */}
         <div
           aria-hidden="true"
           className="absolute inset-0 pointer-events-none"
@@ -301,6 +316,7 @@ export default function HeroSection() {
           }}
         />
 
+        {/* Top bar — label + description */}
         <motion.div
           className="hidden md:flex absolute top-[120px] left-12 right-12 items-start justify-between"
           style={{
@@ -331,6 +347,7 @@ export default function HeroSection() {
           </div>
         </motion.div>
 
+        {/* Decorative shapes — own parallax plane */}
         <motion.div
           className="hidden md:block absolute"
           style={{
@@ -340,11 +357,13 @@ export default function HeroSection() {
             height: "100vh",
             zIndex: 0,
             y: shapesY,
+            x: shapesContainerX,
           }}
         >
           <HeroShapes mx={mx} my={my} baseDelay={T.tags / 1000 + 0.4} />
         </motion.div>
 
+        {/* Pixel canvas + circular text */}
         <div
           className="hidden md:block absolute select-none"
           style={{
@@ -381,7 +400,9 @@ export default function HeroSection() {
           )}
         </div>
 
+        {/* Main content column */}
         <div className="relative flex flex-col h-full">
+          {/* Mobile top info */}
           <div className="md:hidden pt-24 px-6 space-y-2">
             <div style={{ overflow: "hidden" }}>
               <motion.span
@@ -406,6 +427,7 @@ export default function HeroSection() {
 
           <div className="flex-1 min-h-6 md:min-h-0" />
 
+          {/* Heading */}
           <motion.div
             className="font-PT-serif font-bold leading-[0.95] mb-6 md:mb-12 px-6 sm:px-8 md:px-12 md:max-w-[55%]"
             style={{
@@ -418,6 +440,7 @@ export default function HeroSection() {
               opacity: heroOpacity,
             }}
           >
+            {/* Line 1 — "I build" */}
             <motion.div
               style={{
                 x: headingX,
@@ -446,10 +469,13 @@ export default function HeroSection() {
               </div>
             </motion.div>
 
+            {/* Line 2 — "digital" */}
             <motion.div
               style={{
                 x: headingX,
                 y: headingY,
+                rotateX: h1RotateX,
+                rotateY: h1RotateY,
                 transformStyle: "preserve-3d",
               }}
             >
@@ -480,6 +506,7 @@ export default function HeroSection() {
               </div>
             </motion.div>
 
+            {/* Line 3 — "products." */}
             <motion.div
               style={{
                 x: headingX,
@@ -509,6 +536,7 @@ export default function HeroSection() {
             </motion.div>
           </motion.div>
 
+          {/* Mobile pixel canvas */}
           <div
             className="block md:hidden mx-auto mb-6"
             style={{
@@ -528,6 +556,7 @@ export default function HeroSection() {
             )}
           </div>
 
+          {/* Tags */}
           <motion.div
             className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 sm:gap-4 px-6 sm:px-8 md:px-12 pb-10 md:pb-16"
             style={{
