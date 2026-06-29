@@ -91,21 +91,37 @@ function TypewriterText({
   className,
   style,
 }) {
-  const chars = text.split("");
+  const duration = text.length * charDuration;
   return (
-    <span className={className} style={{ ...style, display: "inline-block" }}>
-      {chars.map((char, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.01, delay: delay + i * charDuration }}
-          style={{ whiteSpace: char === " " ? "pre" : "normal" }}
-        >
-          {char}
-        </motion.span>
-      ))}
-    </span>
+    <motion.span
+      className={className}
+      style={{ ...style }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.01, delay }}
+    >
+      <motion.span
+        style={{
+          display: "inline",
+          backgroundImage:
+            "linear-gradient(90deg, currentColor 50%, transparent 50%)",
+          backgroundSize: "200% 100%",
+          backgroundPosition: "100%",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+        }}
+        initial={{ backgroundPosition: "100%" }}
+        animate={{ backgroundPosition: "0%" }}
+        transition={{
+          duration,
+          delay,
+          ease: "linear",
+        }}
+      >
+        {text}
+      </motion.span>
+    </motion.span>
   );
 }
 
@@ -219,6 +235,7 @@ function HeroShapes({ mx, my, baseDelay }) {
 export default function HeroSection() {
   const sectionRef = useRef(null);
   const [showCanvas, setShowCanvas] = useState(false);
+  const [isMd, setIsMd] = useState(false);
 
   const { loaderDone } = useLoader();
   const T = {
@@ -229,6 +246,15 @@ export default function HeroSection() {
     canvas: 2200,
     circularText: 2.4,
   };
+
+  // Track md breakpoint (768px)
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsMd(mq.matches);
+    const handler = (e) => setIsMd(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -357,7 +383,7 @@ export default function HeroSection() {
             height: "100vh",
             zIndex: 0,
             y: shapesY,
-            x: shapesContainerX,
+            x: isMd ? shapesContainerX : 0,
           }}
         >
           <HeroShapes mx={mx} my={my} baseDelay={T.tags / 1000 + 0.4} />
@@ -415,7 +441,7 @@ export default function HeroSection() {
               </motion.span>
             </div>
             <div style={{ overflow: "hidden" }}>
-              <div className="text-[12px] text-ink-3 leading-[1.7] font-mono font-light max-w-[320px]">
+              <div className="text-[12px] text-ink-3 leading-[1.7] font-mono font-light w-full">
                 <TypewriterText
                   text={SITE_CONFIG.heroDescription}
                   delay={T.description}
@@ -431,7 +457,7 @@ export default function HeroSection() {
           <motion.div
             className="font-PT-serif font-bold leading-[0.95] mb-6 md:mb-12 px-6 sm:px-8 md:px-12 md:max-w-[55%]"
             style={{
-              fontSize: "clamp(46px, 11vw, 148px)",
+              fontSize: "clamp(58px, 11vw, 148px)",
               letterSpacing: "clamp(-2px, -0.4vw, -5px)",
               position: "relative",
               zIndex: 3,
@@ -443,10 +469,10 @@ export default function HeroSection() {
             {/* Line 1 — "I build" */}
             <motion.div
               style={{
-                x: headingX,
-                y: headingY,
-                rotateX: h1RotateX,
-                rotateY: h1RotateY,
+                x: isMd ? headingX : 0,
+                y: isMd ? headingY : 0,
+                rotateX: isMd ? h1RotateX : 0,
+                rotateY: isMd ? h1RotateY : 0,
                 transformStyle: "preserve-3d",
               }}
             >
@@ -472,10 +498,10 @@ export default function HeroSection() {
             {/* Line 2 — "digital" */}
             <motion.div
               style={{
-                x: headingX,
-                y: headingY,
-                rotateX: h1RotateX,
-                rotateY: h1RotateY,
+                x: isMd ? headingX : 0,
+                y: isMd ? headingY : 0,
+                rotateX: isMd ? h1RotateX : 0,
+                rotateY: isMd ? h1RotateY : 0,
                 transformStyle: "preserve-3d",
               }}
             >
@@ -509,10 +535,10 @@ export default function HeroSection() {
             {/* Line 3 — "products." */}
             <motion.div
               style={{
-                x: headingX,
-                y: headingY,
-                rotateX: h1RotateX,
-                rotateY: h1RotateY,
+                x: isMd ? headingX : 0,
+                y: isMd ? headingY : 0,
+                rotateX: isMd ? h1RotateX : 0,
+                rotateY: isMd ? h1RotateY : 0,
                 transformStyle: "preserve-3d",
               }}
             >
@@ -562,8 +588,8 @@ export default function HeroSection() {
             style={{
               position: "relative",
               zIndex: 4,
-              x: tagsX,
-              y: tagsY,
+              x: isMd ? tagsX : 0,
+              y: isMd ? tagsY : 0,
               pointerEvents: "none",
             }}
           >

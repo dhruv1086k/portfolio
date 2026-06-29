@@ -13,7 +13,7 @@ export default function LanyardCard() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen max-lg:min-h-auto max-lg:py-6 flex items-center justify-center px-4">
       <div
         className="flex flex-col items-center"
         style={{
@@ -23,10 +23,14 @@ export default function LanyardCard() {
       >
         {/* Strap */}
         <div
-          className="w-9 h-64 rounded-sm relative overflow-hidden flex-shrink-0"
-          style={{ background: "#1e1e1e" }}
+          className="relative overflow-hidden flex-shrink-0"
+          style={{
+            width: "clamp(28px, 5vw, 36px)",
+            height: "clamp(190px, 22vw, 256px)",
+            background: "#1e1e1e",
+            borderRadius: "2px",
+          }}
         >
-          {/* Horizontal weave lines */}
           <div
             className="absolute inset-0"
             style={{
@@ -37,7 +41,7 @@ export default function LanyardCard() {
           <span
             className="absolute top-1/2 left-1/2 text-white/50 tracking-widest whitespace-nowrap font-medium"
             style={{
-              fontSize: "8px",
+              fontSize: "clamp(6px, 1vw, 8px)",
               transform: "translate(-50%, -50%) rotate(90deg)",
               fontFamily: "system-ui, sans-serif",
               letterSpacing: "2.5px",
@@ -50,16 +54,21 @@ export default function LanyardCard() {
 
         {/* Clip */}
         <div
-          className="w-6 h-2 rounded-b-sm shadow-md flex-shrink-0"
+          className="flex-shrink-0 shadow-md"
           style={{
+            width: "clamp(18px, 3vw, 24px)",
+            height: "clamp(6px, 1vw, 8px)",
+            borderRadius: "0 0 3px 3px",
             background: "linear-gradient(180deg, #999 0%, #bbb 40%, #777 100%)",
           }}
         />
 
         {/* Card */}
         <div
-          className="w-54 rounded-2xl overflow-hidden relative pb-7"
+          className="rounded-2xl overflow-hidden relative"
           style={{
+            width: "clamp(180px, 45vw, 216px)",
+            paddingBottom: "clamp(16px, 3vw, 28px)",
             background: "#1e1e1e",
             boxShadow:
               "0 18px 50px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3)",
@@ -81,34 +90,38 @@ export default function LanyardCard() {
 
           {/* Card content */}
           <div
-            className="px-5 pt-5 relative z-10"
+            className="relative z-10"
+            style={{
+              padding: "clamp(12px, 3vw, 20px) clamp(12px, 3vw, 20px) 0",
+            }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={() => setIsLanyardOver(false)}
           >
             <p
               className="text-white font-bold leading-tight mb-2 font-mono"
-              style={{ fontSize: "30px" }}
+              style={{ fontSize: "clamp(20px, 4vw, 30px)" }}
             >
               Dhruv Pal
             </p>
             <p
-              className="text-white/45 font-light leading-relaxed mb-6"
+              className="text-white/45 font-light leading-relaxed mb-4"
               style={{
-                fontSize: "11px",
+                fontSize: "clamp(9px, 1.5vw, 11px)",
                 fontFamily: "system-ui, sans-serif",
                 letterSpacing: "0.01em",
               }}
             >
               Building web applications, solving problems, learning
-              continuously, and
-              <br />
-              turning ideas into meaningful digital experiences.
+              continuously, and turning ideas into meaningful digital
+              experiences.
             </p>
 
             {/* Avatar container */}
             <div
-              className="w-32 h-32 rounded-full mx-auto p-[3px]"
+              className="rounded-full mx-auto p-[3px]"
               style={{
+                width: "clamp(96px, 15vw, 128px)",
+                height: "clamp(96px, 15vw, 128px)",
                 background: "linear-gradient(135deg, #444 0%, #222 100%)",
                 boxShadow:
                   "0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06)",
@@ -147,6 +160,13 @@ export default function LanyardCard() {
           0%   { transform: rotate(-7deg); }
           50%  { transform: rotate(7deg); }
           100% { transform: rotate(-7deg); }
+        }
+        @media (max-width: 480px) {
+          @keyframes swing {
+            0%   { transform: rotate(-4deg); }
+            50%  { transform: rotate(4deg); }
+            100% { transform: rotate(-4deg); }
+          }
         }
       `}</style>
     </div>

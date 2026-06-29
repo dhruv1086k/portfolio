@@ -5,6 +5,7 @@ import PixelButton from "../ui/PixelButton";
 import { useLenis } from "../common/SmoothScroll";
 import GridLogo from "../ui/GridLogo";
 import { useLoader } from "../../context/LoaderContext";
+import PixelChipButton from "../ui/pixel-chip-button";
 
 const NAV_LINKS = [
   { label: "About", href: "/#about" },
@@ -17,6 +18,17 @@ const STRIP_COUNT = 5;
 const GLITCH_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?/01XYZ#%&";
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1];
 const EASE_IN_OUT = [0.65, 0, 0.35, 1];
+
+const handleLogoClick = (e) => {
+  if (isHome) {
+    e.preventDefault();
+    if (lenisRef?.current) {
+      lenisRef.current.scrollTo(0, { duration: 1.2 });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+};
 
 function useScramble(text, { delay = 0, totalFrames = 12 } = {}) {
   const spanRef = useRef(null);
@@ -230,7 +242,11 @@ export default function Navbar({ navLogoRef }) {
             }
             transition={{ duration: 0.7, ease: EASE_OUT_EXPO, delay: 0.05 }}
           >
-            <Link to="/" className="flex items-center no-underline">
+            <Link
+              to="/"
+              className="flex items-center no-underline"
+              onClick={handleLogoClick}
+            >
               <GridLogo SQ={10} GAP={2} />
             </Link>
           </motion.div>
@@ -259,7 +275,7 @@ export default function Navbar({ navLogoRef }) {
             )}
           </ul>
 
-          <div style={{ overflow: "hidden", paddingBottom: 2 }}>
+          <div style={{ overflow: "hidden" }}>
             <motion.div
               initial={{ y: "-120%", opacity: 0 }}
               animate={
@@ -269,14 +285,13 @@ export default function Navbar({ navLogoRef }) {
               }
               transition={{ duration: 0.8, ease: EASE_OUT_EXPO, delay: 0.6 }}
             >
-              <PixelButton
-                href="#projects"
-                pixelSize={6}
-                bgColor="#C4501A"
-                textColor="#0D0C0A"
-              >
-                RESUME
-              </PixelButton>
+              <PixelChipButton
+                label="RESUME"
+                href="#"
+                cols={8}
+                cell={11}
+                fontSize={12}
+              />
             </motion.div>
           </div>
         </div>
@@ -433,14 +448,16 @@ export default function Navbar({ navLogoRef }) {
                   }}
                   className="mt-6"
                 >
-                  <PixelButton
-                    href="#projects"
-                    pixelSize={6}
-                    bgColor="#C4501A"
-                    textColor="#0D0C0A"
-                  >
-                    RESUME
-                  </PixelButton>
+                  <PixelChipButton
+                    label="RESUME"
+                    accentColor="#FF6A00"
+                    textColor="#fff"
+                    bgColor="#100D0A"
+                    href="#"
+                    cols={8}
+                    cell={11}
+                    fontSize={12}
+                  />
                 </motion.div>
               </div>
               <motion.div

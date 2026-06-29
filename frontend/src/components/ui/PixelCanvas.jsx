@@ -1,8 +1,8 @@
 import { useEffect, useRef, forwardRef } from "react";
 
 function getAdaptivePixelSize(canvasWidth) {
-  if (canvasWidth < 300) return 7;
-  if (canvasWidth < 500) return 4;
+  if (canvasWidth < 300) return 3;
+  if (canvasWidth < 500) return 3;
   if (canvasWidth < 800) return 5;
   return 4;
 }
