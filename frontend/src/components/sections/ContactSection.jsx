@@ -5,6 +5,7 @@ import SectionNumber from "../common/SectionNumber";
 import ContactLink from "../ui/ContactLink";
 import portfolioService from "../../services/portfolioService";
 import { SITE_CONFIG } from "../../constants/data";
+import PixelChipButton from "../ui/pixel-chip-button";
 
 export default function ContactSection() {
   const [submitState, setSubmitState] = useState("idle"); // idle | sending | sent | error
@@ -189,14 +190,17 @@ export default function ContactSection() {
               {errors.message.message}
             </span>
           )}
-
-          <button
-            type="submit"
-            disabled={submitState === "sending"}
-            className={`cursor-hover w-full py-4.5 border font-pixelify text-sm font-normal tracking-[1.5px] uppercase rounded transition-all duration-300 mt-2 ${buttonStyles[submitState]}`}
-          >
-            {buttonText[submitState]}
-          </button>
+          {/* <PixelChipButton
+            label="SEND MESSAGE"
+            accentColor="#FF6A00"
+            textColor="#000"
+            bgColor="#F5F2EC"
+            href="#"
+            cols={40}
+            cell={12}
+            side={10}
+            fontSize={12}
+          /> */}
         </form>
       </ScrollReveal>
     </section>

@@ -11,6 +11,7 @@ import PixelCanvas from "../ui/PixelCanvas";
 import { SITE_CONFIG } from "../../constants/data";
 import CircularText from "../ui/CircularText";
 import { useLoader } from "../../context/LoaderContext";
+import { PointerHighlight } from "../ui/pointer-highlight";
 
 const EASE_EXPO = [0.6, 2, 0.76, 1];
 

@@ -6,8 +6,7 @@ export const SITE_CONFIG = {
   role: 'Full Stack Developer',
   initials: 'DP',
   bio: [
-    `I'm <strong>Dhruv Pal</strong>, a full-stack developer and BCA student obsessed with building products that feel precise, fast, and human. I work at the intersection of engineering and design — where clean code meets thoughtful UI.`,
-    `Currently leading the <strong>ALFA Coding Club</strong> and building at <strong>Neosankalp</strong> — pushing myself to ship things that last.`,
+    "I'm Dhruv Pal, a full-stack developer who enjoys building modern web applications. I focus on performance, user experience, and clean code. I love creating products that solve real problems, from backend systems to polished interfaces.",
   ],
   metrics: [
     { value: '15+', label: 'Projects' },

@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import LanyardCard from "../ui/Lanyard";
 import BlurText from "../ui/BlurText";
 import ScrollRevealBits from "../ui/ScrollRevealBits";
+import { PointerHighlight } from "../ui/pointer-highlight";
 
 export default function AboutSection() {
   const portraitRef = useRef(null);
@@ -87,7 +88,7 @@ export default function AboutSection() {
           {SITE_CONFIG.bio.map((paragraph, i) => (
             <div
               key={i}
-              className="text-[14px] font-mono text-ink-2 leading-[1.8] font-light max-w-[540px]"
+              className="text-[14px] font-mono text-ink-2 leading-[1.8] font-light max-w-[620px]"
               style={{ marginTop: i > 0 ? "16px" : undefined }}
             >
               <ScrollRevealBits
@@ -96,7 +97,19 @@ export default function AboutSection() {
                 baseRotation={3}
                 blurStrength={4}
               >
-                {paragraph.replace(/<[^>]+>/g, "")}
+                I'm Dhruv Pal, a{" "}
+                <PointerHighlight
+                  rectangleClassName="bg-orange-100 dark:bg-orange-900 border-orange-300 dark:border-orange-700"
+                  pointerClassName="text-orange-500 h-3 w-3"
+                  containerClassName="inline-block ml-1"
+                >
+                  <span className="relative z-50">full-stack developer</span>
+                </PointerHighlight>{" "}
+                who enjoys building modern web applications. I focus on
+                performance, user experience, and clean code. I love creating
+                products that solve real problems, from backend systems to
+                polished interfaces.
+                {/* <div className="mx-auto max-w-lg py-20 text-2xl font-bold tracking-tight md:text-xl"></div> */}
               </ScrollRevealBits>
             </div>
           ))}
