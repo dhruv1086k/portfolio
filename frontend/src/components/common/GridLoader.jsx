@@ -6,28 +6,23 @@ const GAP = 5;
 const CELL = SQ + GAP;
 const ORANGE = "#f97316";
 const SQUARES = 9;
-const MIN_DURATION = 2500; // ms — minimum loader display time
+const MIN_DURATION = 2500;
 
-/**
- * GridLoader
- *
- * Props:
- *   isLoading  {boolean}  — pass false when your data/page is ready.
- *                           Loader waits for animation to finish (min 2.5s)
- *                           before calling onDone.
- *   onDone     {function} — called when loader finishes and is ready to hide.
- */
 export default function GridLoader({ isLoading = true, onDone }) {
   const cellRefs = useRef([]);
   const startTime = useRef(Date.now());
   const loadDoneTime = useRef(null);
   const animationDone = useRef(false);
   const sequenceRunning = useRef(false);
+  const [exiting, setExiting] = useState(false);
 
-  // Called when both: animation finished AND isLoading is false
   const tryComplete = () => {
     if (animationDone.current && loadDoneTime.current !== null) {
-      onDone?.();
+      setExiting(true);
+      // Wait for the CSS transition to finish before calling onDone
+      setTimeout(() => {
+        onDone?.();
+      }, 600); // matches transition duration below
     }
   };
 
@@ -60,25 +55,17 @@ export default function GridLoader({ isLoading = true, onDone }) {
 
       reset();
 
-      // Shuffle indices for random drop order
       const indices = Array.from({ length: SQUARES }, (_, i) => i);
       for (let i = indices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [indices[i], indices[j]] = [indices[j], indices[i]];
       }
 
-      // How long has it been since mount?
       const elapsed = Date.now() - startTime.current;
-      // How much total time should the sequence take?
-      // At least MIN_DURATION from mount. If loading is already done and took
-      // longer, use that. Either way give the drops the full remaining budget.
       const totalBudget = Math.max(MIN_DURATION, elapsed) - elapsed;
-      // Reserve ~30% of budget for the last bounce + complete pulse
       const dropBudget = totalBudget * 0.7;
-      // Spread 9 drops across the budget
       const DROP_INTERVAL = Math.max(80, dropBudget / SQUARES);
-
-      const dropDuration = 300; // ms for single square fall+settle
+      const dropDuration = 300;
 
       indices.forEach((idx, order) => {
         const el = els[idx];
@@ -120,14 +107,8 @@ export default function GridLoader({ isLoading = true, onDone }) {
                     duration: 120,
                     easing: "easeOutQuad",
                   },
-                  {
-                    rotate: -3,
-                    duration: 100,
-                  },
-                  {
-                    rotate: 1,
-                    duration: 80,
-                  },
+                  { rotate: -3, duration: 100 },
+                  { rotate: 1, duration: 80 },
                   {
                     rotate: 0,
                     scaleX: 1,
@@ -141,7 +122,6 @@ export default function GridLoader({ isLoading = true, onDone }) {
             },
           });
 
-          // Last square dropped — run complete pulse then signal done
           if (order === SQUARES - 1) {
             const settleDuration = dropDuration + 75 + 130 + 90 + 220 + 100;
             setTimeout(() => {
@@ -163,7 +143,6 @@ export default function GridLoader({ isLoading = true, onDone }) {
       });
     };
 
-    // Small initial delay so React has painted before we read startTime
     const init = setTimeout(runSequence, 50);
     return () => clearTimeout(init);
   }, []);
@@ -174,31 +153,43 @@ export default function GridLoader({ isLoading = true, onDone }) {
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(3, ${SQ}px)`,
-        gridTemplateRows: `repeat(3, ${SQ}px)`,
-        gap: GAP,
-        width: gridW,
-        height: gridH,
-        overflow: "visible",
+        transition: exiting
+          ? "opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease"
+          : "none",
+        opacity: exiting ? 0 : 1,
+        filter: exiting ? "blur(12px)" : "blur(0px)",
+        transform: exiting ? "scale(1.15)" : "scale(1)",
+        willChange: "opacity, filter, transform",
       }}
     >
-      {Array.from({ length: SQUARES }, (_, idx) => (
-        <div
-          key={idx}
-          ref={(el) => (cellRefs.current[idx] = el)}
-          style={{
-            width: SQ,
-            height: SQ,
-            borderRadius: 4,
-            border: "2px solid rgba(249,115,22,0.2)",
-            background: "transparent",
-            boxSizing: "border-box",
-            willChange: "transform, background",
-            transformOrigin: "50% 120%",
-          }}
-        />
-      ))}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(3, ${SQ}px)`,
+          gridTemplateRows: `repeat(3, ${SQ}px)`,
+          gap: GAP,
+          width: gridW,
+          height: gridH,
+          overflow: "visible",
+        }}
+      >
+        {Array.from({ length: SQUARES }, (_, idx) => (
+          <div
+            key={idx}
+            ref={(el) => (cellRefs.current[idx] = el)}
+            style={{
+              width: SQ,
+              height: SQ,
+              borderRadius: 4,
+              border: "2px solid rgba(249,115,22,0.2)",
+              background: "transparent",
+              boxSizing: "border-box",
+              willChange: "transform, background",
+              transformOrigin: "50% 120%",
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
