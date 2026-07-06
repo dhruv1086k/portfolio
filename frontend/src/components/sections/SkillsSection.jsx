@@ -1,472 +1,613 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import anime from "animejs";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import anime from 'animejs';
+import {
+  Monitor,
+  Braces,
+  Server,
+  Database,
+  Sparkles,
+  ExternalLink,
+  Component,
+  Boxes,
+  Orbit,
+  ScanLine,
+  Layers3,
+  ShieldCheck,
+  Cpu,
+  Activity,
+} from 'lucide-react';
+import { AnimatedSpan, Terminal, TypingAnimation } from '../ui/terminal';
 
-// ─── Orbit icon data ───
-const ORBIT_ICONS = [
-  { icon: "deployed_code", bg: "light" },
-  { icon: "database", bg: "dark" },
-  { icon: "terminal", bg: "light" },
-  { icon: "cloud", bg: "light" },
-  { icon: "code", bg: "light" },
-  { icon: "dns", bg: "dark" },
+const MODULES = [
+  {
+    id: '01',
+    title: 'Frontend',
+    icon: Monitor,
+    tags: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Redux'],
+    tone: 'from-orange-500/30 via-orange-500/10 to-transparent',
+    accent: 'text-orange-400',
+    border: 'border-orange-500/20',
+    glow: '255,138,76',
+  },
+  {
+    id: '02',
+    title: 'Backend',
+    icon: Server,
+    tags: ['Node.js', 'Express.js', 'JWT', 'REST APIs', 'Multer', 'Cloudinary'],
+    tone: 'from-sky-400/30 via-sky-400/10 to-transparent',
+    accent: 'text-sky-300',
+    border: 'border-sky-400/20',
+    glow: '110,203,255',
+  },
+  {
+    id: '03',
+    title: 'Database',
+    icon: Braces,
+    tags: ['MongoDB', 'SQL', 'Mongoose', 'Redis'],
+    tone: 'from-emerald-400/30 via-emerald-400/10 to-transparent',
+    accent: 'text-emerald-300',
+    border: 'border-emerald-400/20',
+    glow: '80,230,180',
+  },
+  {
+    id: '04',
+    title: 'Dev Workflow',
+    icon: Database,
+    tags: ['Git', 'GitHub', 'Postman'],
+    tone: 'from-amber-400/30 via-amber-400/10 to-transparent',
+    accent: 'text-amber-300',
+    border: 'border-amber-400/20',
+    glow: '250,204,110',
+  },
 ];
 
-// ─── MERN Stack data ───
-const MERN_ITEMS = [
-  { icon: "database", label: "MongoDB" },
-  { icon: "dns", label: "Express.js" },
-  { icon: "deployed_code", label: "React" },
-  { icon: "terminal", label: "Node.js" },
-];
-
-// ─── AI Skills with progress ───
 const AI_SKILLS = [
-  { name: "OpenAI API", level: 95 },
-  { name: "LangChain", level: 90 },
-  { name: "Prompt Engineering", level: 85 },
-  { name: "RAG Systems", level: 80 },
+  { label: 'OpenAI API', value: 95 },
+  { label: 'LangChain', value: 60 },
+  { label: 'Prompt Engineering', value: 85 },
+  { label: 'Python', value: 70 },
 ];
 
-// ─── Light skill cards data ───
-const LIGHT_CARDS = [
-  {
-    num: "01",
-    title: "Frontend",
-    icon: "desktop_windows",
-    techs: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Redux"],
+// Subtle, layered scroll-reveal variants (Framer Motion — structural staggering)
+// viewport.once is false everywhere so these replay on every re-entry
+const staggerContainer = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.1, delayChildren: 0.04 },
   },
-  {
-    num: "02",
-    title: "JavaScript Ecosystem",
-    icon: "code",
-    techs: ["ES6+", "JavaScript", "TypeScript", "Framer Motion", "GSAP", "Webpack", "Vite"],
-  },
-  {
-    num: "03",
-    title: "Backend",
-    icon: "dns",
-    techs: ["Node.js", "Express.js", "REST API", "JWT", "Socket.io"],
-  },
-  {
-    num: "04",
-    title: "Database",
-    icon: "database",
-    techs: ["MongoDB", "Mongoose", "SQL", "Firebase"],
-  },
-  {
-    num: "05",
-    title: "Dev Workflow",
-    icon: "terminal",
-    techs: ["Git", "Vercel", "Figma", "Postman", "Docker"],
-  },
-];
-
-// ─── Color palette (matching Stitch Kinetic Engineering design system) ───
-const C = {
-  surface: "#fef8f3",
-  surfaceLow: "#f8f3ed",
-  surfaceHigh: "#ece7e2",
-  surfaceVariant: "#e7e2dc",
-  onSurface: "#1d1b18",
-  onSurfaceVariant: "#5b403a",
-  outlineVariant: "#e4beb6",
-  primary: "#b72301",
-  primaryContainer: "#ff5733",
-  inverseSurface: "#32302d",
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   ORBITAL COMPONENT — Anime.js powered centerpiece
-   ═══════════════════════════════════════════════════════════════════════════ */
-function TechOrbit() {
-  const containerRef = useRef(null);
-  const outerRingRef = useRef(null);
-  const innerRingRef = useRef(null);
-  const hubRef = useRef(null);
-  const hubGlowRef = useRef(null);
-  const tooltipRef = useRef(null);
-  const orbitWrapRef = useRef(null);
-  const iconRefs = useRef([]);
-  const [entered, setEntered] = useState(false);
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
-  const storeIcon = useCallback((el, i) => {
-    if (el) iconRefs.current[i] = el;
-  }, []);
+const fadeInFromRight = {
+  hidden: { opacity: 0, x: 24, scale: 0.99 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
-  // Intersection observer — trigger once
+function useReducedMotionSafe() {
+  const [reduced, setReduced] = useState(false);
   useEffect(() => {
-    const el = containerRef.current;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => setReduced(mq.matches);
+    onChange();
+    mq.addEventListener?.('change', onChange);
+    return () => mq.removeEventListener?.('change', onChange);
+  }, []);
+  return reduced;
+}
+
+// anime.js — subtle blur fade-in, used for headings.
+// Now re-arms on exit so it replays every time the element re-enters view,
+// whether scrolling down into it or back up into it.
+function useBlurFadeIn({ y = 12, duration = 850, delay = 0, blur = 10 } = {}) {
+  const ref = useRef(null);
+  const reduced = useReducedMotionSafe();
+  const animRef = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
     if (!el) return;
+
+    if (reduced) {
+      el.style.opacity = 1;
+      el.style.filter = 'blur(0px)';
+      el.style.transform = 'none';
+      return;
+    }
+
+    const reset = () => {
+      if (animRef.current) animRef.current.pause();
+      el.style.opacity = 0;
+      el.style.filter = `blur(${blur}px)`;
+      el.style.transform = `translateY(${y}px)`;
+    };
+
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setEntered(true); obs.disconnect(); } },
-      { threshold: 0.2 },
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          animRef.current = anime({
+            targets: el,
+            opacity: [0, 1],
+            translateY: [y, 0],
+            filter: [`blur(${blur}px)`, 'blur(0px)'],
+            duration,
+            delay,
+            easing: 'easeOutCubic',
+          });
+        } else {
+          reset();
+        }
+      },
+      { threshold: 0.4 }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
+  }, [y, duration, delay, blur, reduced]);
 
-  // All animations
+  return ref;
+}
+
+function AnimatedNumber({ value, decimals = 0, suffix = '' }) {
+  const ref = useRef(null);
+  const reduced = useReducedMotionSafe();
+  const [display, setDisplay] = useState((0).toFixed(decimals));
+  const mv = useMotionValue(0);
+  const spring = useSpring(mv, { stiffness: 65, damping: 20 });
+  const [inView, setInView] = useState(false);
+
   useEffect(() => {
-    if (!entered) return;
-    const icons = iconRefs.current.filter(Boolean);
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      setInView(entry.isIntersecting);
+      if (!entry.isIntersecting) mv.set(0);
+    }, { threshold: 0.35 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [mv]);
 
-    // Orbit rings scale in
-    anime({ targets: outerRingRef.current, scale: [0, 1], opacity: [0, 1], duration: 1200, easing: "easeOutExpo", delay: 200 });
-    anime({ targets: innerRingRef.current, scale: [0, 1], opacity: [0, 1], duration: 1200, easing: "easeOutExpo", delay: 400 });
+  useEffect(() => {
+    if (inView) mv.set(value);
+  }, [inView, value, mv]);
 
-    // Hub bounce in
-    anime({ targets: hubRef.current, scale: [0, 1], opacity: [0, 1], duration: 800, easing: "easeOutBack", delay: 600 });
+  useEffect(() => {
+    if (reduced) {
+      setDisplay(Number(value).toFixed(decimals));
+      return;
+    }
+    const unsub = spring.on('change', (v) => setDisplay(Number(v).toFixed(decimals)));
+    return unsub;
+  }, [spring, reduced, decimals, value]);
 
-    // Hub glow pulse (loops)
-    anime({ targets: hubGlowRef.current, opacity: [0.3, 0.6, 0.3], scale: [0.9, 1.1, 0.9], duration: 4000, easing: "easeInOutSine", loop: true });
+  return <span ref={ref}>{display}{suffix}</span>;
+}
 
-    // Icons pop in with stagger
-    anime({ targets: icons, scale: [0, 1], opacity: [0, 1], duration: 600, delay: anime.stagger(120, { start: 800 }), easing: "easeOutBack" });
-
-    // Tooltip slide in
-    anime({ targets: tooltipRef.current, translateX: [40, 0], opacity: [0, 1], duration: 800, easing: "easeOutExpo", delay: 1400 });
-
-    // Continuous orbit rotation
-    anime({ targets: orbitWrapRef.current, rotate: "1turn", duration: 60000, easing: "linear", loop: true });
-
-    // Counter-rotate icons so they stay upright
-    anime({ targets: icons, rotate: "-1turn", duration: 60000, easing: "linear", loop: true });
-
-    // Subtle float per icon
-    icons.forEach((icon, i) => {
-      anime({ targets: icon, translateY: [-3, 3, -3], duration: 2500 + i * 400, easing: "easeInOutSine", loop: true, delay: i * 300 });
-    });
-  }, [entered]);
-
-  // Precompute positions around a circle
-  const R = 170;
-  const positions = ORBIT_ICONS.map((_, i) => {
-    const a = (i / ORBIT_ICONS.length) * Math.PI * 2 - Math.PI / 2;
-    return { x: Math.cos(a) * R, y: Math.sin(a) * R };
-  });
-
+function HoloBackdrop() {
   return (
-    <div ref={containerRef} className="relative w-full flex items-center justify-center" style={{ height: 500 }}>
-      {/* Dotted grid corner decoration */}
-      <div className="absolute right-0 top-0 w-32 h-32 opacity-30 pointer-events-none"
-        style={{ backgroundImage: `radial-gradient(circle, ${C.outlineVariant} 1.5px, transparent 1.5px)`, backgroundSize: "16px 16px" }} />
-
-      <div className="relative flex items-center justify-center" style={{ width: 400, height: 400 }}>
-        {/* Outer ring */}
-        <div ref={outerRingRef} className="absolute rounded-full" style={{ width: "100%", height: "100%", border: `1px solid ${C.outlineVariant}4D`, opacity: 0 }} />
-        {/* Inner ring */}
-        <div ref={innerRingRef} className="absolute rounded-full" style={{ width: "80%", height: "80%", border: `1px solid ${C.outlineVariant}80`, opacity: 0 }} />
-
-        {/* Center hub */}
-        <div ref={hubRef} className="z-20 relative flex items-center justify-center"
-          style={{ width: 128, height: 128, backgroundColor: C.inverseSurface, borderRadius: "50%", border: `4px solid ${C.surface}`, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)", opacity: 0 }}>
-          <div ref={hubGlowRef} className="absolute inset-0 rounded-full" style={{ background: `linear-gradient(135deg, ${C.primary}66, transparent 70%)`, filter: "blur(12px)" }} />
-          <span className="relative z-10" style={{ color: C.primary, fontWeight: 700, fontSize: 36, letterSpacing: "-0.05em", fontFamily: "'Epilogue', sans-serif" }}>{"[{p}]"}</span>
-        </div>
-
-        {/* Orbiting icons wrapper */}
-        <div ref={orbitWrapRef} className="absolute" style={{ width: "100%", height: "100%" }}>
-          {ORBIT_ICONS.map((item, i) => {
-            const isDark = item.bg === "dark";
-            return (
-              <div key={i} ref={(el) => storeIcon(el, i)}
-                className="absolute cursor-pointer transition-shadow duration-300"
-                style={{
-                  top: "50%", left: "50%",
-                  transform: `translate(calc(-50% + ${positions[i].x}px), calc(-50% + ${positions[i].y}px))`,
-                  padding: 12,
-                  backgroundColor: isDark ? C.inverseSurface : "#fff",
-                  borderRadius: 12,
-                  boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
-                  border: `1px solid ${isDark ? C.primary + "4D" : C.outlineVariant}`,
-                  opacity: 0,
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 0 20px ${C.primary}33`; e.currentTarget.style.borderColor = C.primary; }}
-                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.1)"; e.currentTarget.style.borderColor = isDark ? C.primary + "4D" : C.outlineVariant; }}
-              >
-                <span className="material-symbols-outlined" style={{ color: isDark ? "#fff" : C.primary, fontSize: 24 }}>{item.icon}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* TypeScript floating tooltip card */}
-        <div ref={tooltipRef} className="absolute z-30 hidden md:block"
-          style={{ top: 40, right: -40, backgroundColor: C.inverseSurface, color: "#fff", padding: 24, borderRadius: 16, width: 208, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.1)", opacity: 0 }}>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center justify-center rounded" style={{ width: 24, height: 24, background: "#3178c6", fontSize: 10, fontWeight: 700, color: "#fff" }}>TS</div>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14 }}>TypeScript</span>
-          </div>
-          {[
-            { label: "Experience", value: "3+ years", color: C.primary },
-            { label: "Used In", value: "12+ projects", color: "#fff" },
-            { label: "Love", value: "Type safety & developer experience", color: C.surfaceVariant },
-          ].map((r) => (
-            <div key={r.label} className="mb-3">
-              <p style={{ fontSize: 10, color: "#a8a5a0", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 2, fontFamily: "'JetBrains Mono', monospace" }}>{r.label}</p>
-              <p style={{ fontSize: 12, fontWeight: 700, color: r.color, fontFamily: "'JetBrains Mono', monospace" }}>{r.value}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.05),transparent_35%),radial-gradient(circle_at_20%_20%,rgba(255,94,58,0.18),transparent_28%),radial-gradient(circle_at_80%_30%,rgba(110,203,255,0.13),transparent_26%),radial-gradient(circle_at_70%_80%,rgba(180,140,255,0.12),transparent_26%)]" />
+      <div className="absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:radial-gradient(circle_at_center,black_35%,transparent_85%)]" />
+      <div className="absolute -left-32 -top-24 h-[460px] w-[460px] rounded-full bg-orange-500/20 blur-[60px] animate-[float_14s_ease-in-out_infinite]" />
+      <div className="absolute -right-36 top-56 h-[560px] w-[560px] rounded-full bg-sky-400/15 blur-[70px] animate-[float_14s_ease-in-out_infinite] [animation-delay:-4s]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_0%,rgba(255,255,255,0.045)_48%,transparent_52%,transparent_100%)] bg-[length:100%_240px] opacity-10 mix-blend-screen animate-[scan_8s_linear_infinite]" />
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   LIGHT SKILL CARD
-   ═══════════════════════════════════════════════════════════════════════════ */
-function SkillCardLight({ num, title, icon, techs }) {
+
+function HoloCard({ mod, index, bgImage }) {
+  const circuitBg = `
+    linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px) 0 0/64px 64px,
+    linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px) 0 0/64px 64px,
+    radial-gradient(circle, rgba(255,255,255,0.5) 1.5px, transparent 1.5px) 0 0/64px 64px
+  `;
+
+  const ref = useRef(null);
+  const [mouse, setMouse] = useState({ x: 50, y: 50 });
+  const [hovered, setHovered] = useState(false);
+
+  const titleRef = useBlurFadeIn({ y: 10, duration: 750, delay: index * 90 + 120, blur: 8 });
+
+  const handleMove = (e) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMouse({ x, y });
+  };
+
   return (
-    <div className="flex flex-col justify-between transition-all duration-300 cursor-pointer"
-      style={{ backgroundColor: C.surfaceLow, border: `1px solid ${C.outlineVariant}66`, borderRadius: 12, padding: 32, minHeight: 220 }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = `0 0 15px ${C.primary}1A`; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.outlineVariant + "66"; e.currentTarget.style.boxShadow = "none"; }}
+    <motion.article
+      ref={ref}
+      className="group relative min-h-[280px] rounded-[30px]"
+      initial={{ opacity: 0, y: 22, scale: 0.99 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: false, amount: 0.22 }}
+      transition={{ duration: 0.7, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{
+        y: -8,
+        rotateX: 4,
+        rotateY: index % 2 === 0 ? -4 : 4,
+        scale: 1.015,
+      }}
+      onMouseMove={handleMove}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ '--glow': mod.glow, transformStyle: 'preserve-3d' }}
     >
-      <div>
-        <div className="flex justify-between items-start mb-6">
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: "0.1em", fontWeight: 500, color: C.primary }}>{num}</span>
-          <span className="material-symbols-outlined" style={{ color: C.onSurfaceVariant + "80", fontSize: 24 }}>{icon}</span>
-        </div>
-        <h3 style={{ fontFamily: "'Epilogue', sans-serif", fontSize: 32, fontWeight: 700, lineHeight: 1.2, color: C.onSurface, marginBottom: 24 }}>{title}</h3>
-        <div className="flex flex-wrap gap-2 mb-8">
-          {techs.map((t) => (
-            <span key={t} style={{ backgroundColor: C.surfaceHigh, padding: "4px 16px", borderRadius: 9999, fontSize: 13, fontWeight: 500, fontFamily: "'Hanken Grotesk', sans-serif", color: C.onSurface }}>{t}</span>
-          ))}
-        </div>
-      </div>
-      <button className="flex items-center gap-2 group" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: "0.1em", fontWeight: 500, color: C.onSurface, textTransform: "uppercase", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-        View Details
-        <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform" style={{ fontSize: 14 }}>arrow_forward</span>
-      </button>
-    </div>
-  );
-}
+      {/* Clipping layer: flat, owns overflow-hidden + rounded corners + all visuals */}
+      <div
+        className={`absolute inset-0 overflow-hidden rounded-[30px] border ${mod.border} bg-gradient-to-b from-white/10 to-white/5 shadow-[0_26px_70px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]`}
+      >
+        <div className={`absolute inset-0 bg-gradient-to-br ${mod.tone} opacity-80`} />
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   AI DEVELOPMENT CARD — Dark with animated progress bars
-   ═══════════════════════════════════════════════════════════════════════════ */
-function AICard() {
-  const cardRef = useRef(null);
-  const barRefs = useRef([]);
-  const [entered, setEntered] = useState(false);
+        <motion.div
+          className="pointer-events-none absolute inset-0"
+          animate={{
+            opacity: hovered ? 1 : 0,
+          }}
+          transition={{ duration: 0.35 }}
+        >
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-25"
+            style={{
+              backgroundImage: `linear-gradient(to right, rgba(8,8,10,0.2), rgba(8,8,10,0.78) 62%), url(${bgImage})`,
+            }}
+          />
+          <div
+            className="absolute inset-y-0 right-0 w-[55%] bg-cover bg-center opacity-45 blur-[0.2px]"
+            style={{
+              backgroundImage: `url(${bgImage})`,
+              clipPath: 'polygon(18% 0, 100% 0, 100% 100%, 0 100%)',
+              transform: 'scale(1.05)',
+            }}
+          />
+        </motion.div>
 
-  const storeBar = useCallback((el, i) => { if (el) barRefs.current[i] = el; }, []);
+        <motion.div
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            background: `radial-gradient(circle at ${mouse.x}% ${mouse.y}%, rgba(${mod.glow},0.22), transparent 30%)`,
+          }}
+        />
 
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setEntered(true); obs.disconnect(); } },
-      { threshold: 0.3 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+        <div
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-[0.08]"
+          style={{
+            backgroundImage: circuitBg,
+            maskImage: 'radial-gradient(ellipse at center, black 45%, transparent 85%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at center, black 45%, transparent 85%)',
+          }}
+        />
 
-  useEffect(() => {
-    if (!entered) return;
-    barRefs.current.filter(Boolean).forEach((bar, i) => {
-      anime({ targets: bar, width: [`0%`, `${AI_SKILLS[i].level}%`], duration: 1200, easing: "easeOutExpo", delay: 300 + i * 150 });
-    });
-  }, [entered]);
+        <div
+          className="pointer-events-none absolute inset-0 rounded-[30px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            boxShadow: `inset 0 0 0 1px rgba(var(--glow), 0.42), 0 0 36px -8px rgba(var(--glow), 0.42)`,
+          }}
+        />
 
-  return (
-    <div ref={cardRef} className="flex flex-col justify-between relative overflow-hidden"
-      style={{ backgroundColor: C.inverseSurface, color: C.surface, borderRadius: 12, padding: 32, minHeight: 220 }}>
-      {/* Glowing corner */}
-      <div className="absolute" style={{ top: -40, right: -40, width: 160, height: 160, background: `${C.primary}33`, filter: "blur(60px)" }} />
-
-      <div className="relative z-10">
-        <div className="flex justify-between items-start mb-6">
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: "0.1em", fontWeight: 500, color: C.primary }}>06</span>
-          <span className="material-symbols-outlined" style={{ color: C.primary + "80", fontSize: 24 }}>auto_awesome</span>
-        </div>
-        <h3 style={{ fontFamily: "'Epilogue', sans-serif", fontSize: 32, fontWeight: 700, lineHeight: 1.2, marginBottom: 32 }}>AI Development</h3>
-
-        <div className="flex flex-col gap-4 mb-10">
-          {AI_SKILLS.map((skill, i) => (
-            <div key={skill.name} className="flex flex-col gap-1">
-              <div className="flex justify-between" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: C.surfaceVariant, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                <span>{skill.name}</span>
-                <span style={{ color: C.primary }}>{skill.level}%</span>
-              </div>
-              <div className="relative w-full" style={{ height: 2, backgroundColor: "rgba(255,255,255,0.1)" }}>
-                <div ref={(el) => storeBar(el, i)} className="absolute top-0 left-0 h-full" style={{ backgroundColor: C.primary, boxShadow: `0 0 8px ${C.primaryContainer}`, width: "0%" }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="relative z-10 flex items-center justify-between">
-        <button className="flex items-center gap-2 group" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: "0.1em", fontWeight: 500, color: C.primary, textTransform: "uppercase", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-          View Details
-          <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform" style={{ fontSize: 14 }}>arrow_forward</span>
-        </button>
-        <div className="flex items-center justify-center" style={{ width: 64, height: 64, background: `linear-gradient(135deg, ${C.primary}4D, transparent)`, borderRadius: 12, backdropFilter: "blur(4px)", backgroundColor: "rgba(255,255,255,0.1)" }}>
-          <span className="material-symbols-outlined" style={{ color: C.primary, fontSize: 30 }}>token</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   MERN FULL STACK BANNER
-   ═══════════════════════════════════════════════════════════════════════════ */
-function MERNBanner() {
-  const bannerRef = useRef(null);
-  const iconRefs = useRef([]);
-  const [entered, setEntered] = useState(false);
-
-  const storeIcon = useCallback((el, i) => { if (el) iconRefs.current[i] = el; }, []);
-
-  useEffect(() => {
-    const el = bannerRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setEntered(true); obs.disconnect(); } },
-      { threshold: 0.3 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!entered) return;
-    anime({ targets: iconRefs.current.filter(Boolean), scale: [0.5, 1], opacity: [0, 1], duration: 600, delay: anime.stagger(100, { start: 300 }), easing: "easeOutBack" });
-  }, [entered]);
-
-  return (
-    <div ref={bannerRef} className="relative overflow-hidden flex items-center justify-between flex-wrap gap-8 group"
-      style={{ marginTop: 24, backgroundColor: C.inverseSurface, borderRadius: 12, padding: "32px 48px" }}>
-      {/* Background gradient */}
-      <div className="absolute inset-0 opacity-50" style={{ background: `linear-gradient(90deg, ${C.primary}0D 0%, transparent 50%, ${C.primary}0D 100%)` }} />
-
-      <div className="relative z-10">
-        <span className="block mb-2" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: "0.1em", fontWeight: 500, color: C.primary }}>07</span>
-        <h3 style={{ fontFamily: "'Epilogue', sans-serif", fontSize: 32, fontWeight: 700, lineHeight: 1.2, color: "#fff" }}>MERN Full Stack</h3>
-      </div>
-
-      <div className="relative z-10 flex items-center gap-12 flex-wrap justify-center">
-        {MERN_ITEMS.map((item, i) => (
-          <div key={item.label} className="flex items-center">
-            <div ref={(el) => storeIcon(el, i)} className="flex flex-col items-center gap-2" style={{ opacity: 0 }}>
-              <div className="flex items-center justify-center transition-colors duration-300 group-hover:border-[#b7230180]"
-                style={{ width: 48, height: 48, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <span className="material-symbols-outlined" style={{ color: C.primary, fontSize: 24 }}>{item.icon}</span>
-              </div>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: C.surfaceVariant }}>{item.label}</span>
-            </div>
-            {i < MERN_ITEMS.length - 1 && <div className="hidden md:block ml-6" style={{ width: 32, height: 1, backgroundColor: "rgba(255,255,255,0.1)" }} />}
+        <div className="relative z-10 flex h-full flex-col justify-between p-6 lg:p-7">
+          <div className="flex items-start justify-between">
+            <span className="font-mono text-[15px] tracking-[0.08em] text-white/55">{mod.id}</span>
+            <motion.div
+              initial={{ opacity: 0, rotate: -35, scale: 0.7 }}
+              whileInView={{ opacity: 1, rotate: 0, scale: 1 }}
+              viewport={{ once: false, amount: 0.6 }}
+              transition={{ duration: 0.5, delay: index * 0.06 + 0.18, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <mod.icon
+                size={20}
+                strokeWidth={1.5}
+                className={`${mod.accent} transition-transform duration-300 group-hover:scale-110`}
+              />
+            </motion.div>
           </div>
+
+          <div>
+            <h3
+              ref={titleRef}
+              style={{ opacity: 0, filter: 'blur(8px)' }}
+              className="mt-4 font-grotesk font-semibold text-[clamp(30px,3vw,42px)] leading-none tracking-[-0.05em] text-white transition-transform duration-300 group-hover:translate-y-[-2px]"
+            >
+              {mod.title}
+            </h3>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            {mod.tags.map((tag, tagIndex) => (
+              <motion.span
+                key={tag}
+                initial={{ opacity: 0, y: 6 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.6 }}
+                transition={{
+                  duration: 0.35,
+                  delay: index * 0.06 + 0.28 + tagIndex * 0.04,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="relative z-10 rounded-full border border-white/10 bg-white/6 px-3 py-2 font-mono text-[12px] text-white/90 backdrop-blur-md transition-all duration-300 group-hover:border-white/20 group-hover:bg-white/10 group-hover:translate-y-[-1px]"
+              >
+                {tag}
+              </motion.span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+function SkillRow({ label, value, delay = 0 }) {
+  const wrapRef = useRef(null);
+  const fillRef = useRef(null);
+  const [pct, setPct] = useState(0);
+  const rafRef = useRef(null);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+
+    const animateIn = () => {
+      timeoutRef.current = setTimeout(() => {
+        if (fillRef.current) fillRef.current.style.width = `${value}%`;
+        const start = 0;
+        const end = value;
+        const dur = 1200;
+        const t0 = performance.now();
+        const tick = (now) => {
+          const p = Math.min((now - t0) / dur, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          setPct(Math.round(start + (end - start) * eased));
+          if (p < 1) rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+      }, delay);
+    };
+
+    const reset = () => {
+      clearTimeout(timeoutRef.current);
+      cancelAnimationFrame(rafRef.current);
+      if (fillRef.current) fillRef.current.style.width = '0%';
+      setPct(0);
+    };
+
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        animateIn();
+      } else {
+        reset();
+      }
+    }, { threshold: 0.35 });
+    obs.observe(el);
+
+    return () => {
+      obs.disconnect();
+      clearTimeout(timeoutRef.current);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [value, delay]);
+
+  return (
+    <motion.div
+      ref={wrapRef}
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: false, amount: 0.5 }}
+      transition={{ duration: 0.45, delay: delay / 1000, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div className="mb-2 flex items-baseline justify-between font-mono text-[12px] uppercase tracking-[0.08em] text-white/70">
+        <span>{label}</span>
+        <span>{pct}%</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
+        <div
+          ref={fillRef}
+          className="h-full w-0 rounded-full bg-gradient-to-r from-orange-500 to-amber-300 shadow-[0_0_18px_rgba(180,140,255,0.35)] transition-[width] duration-[1200ms] ease-out"
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+function AIOrbit() {
+  return (
+    <motion.section
+      className="rounded-[30px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.05)]"
+      initial={{ opacity: 0, y: 14, scale: 0.99 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: false, amount: 0.25 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div className="grid gap-4">
+        {AI_SKILLS.map((s, i) => (
+          <SkillRow key={s.label} label={s.label} value={s.value} delay={i * 120} />
         ))}
       </div>
-
-      <button className="relative z-10 flex items-center justify-center rounded-full transition-colors duration-300"
-        style={{ backgroundColor: C.primary + "1A", color: C.primary, width: 48, height: 48, border: "none", cursor: "pointer" }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.primary + "33"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = C.primary + "1A"; }}>
-        <span className="material-symbols-outlined">arrow_right_alt</span>
-      </button>
-    </div>
+    </motion.section>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   MAIN SKILLS SECTION
-   ═══════════════════════════════════════════════════════════════════════════ */
-export default function SkillsSection() {
-  const sectionRef = useRef(null);
-  const headingRef = useRef(null);
-  const subRef = useRef(null);
-  const gridRef = useRef(null);
-  const [entered, setEntered] = useState(false);
+function MERNPanel() {
+  const icons = [
+    { Icon: Database, label: 'MongoDB', color: '#4ADE80', glow: 'rgba(74,222,128,0.35)' },
+    { Icon: Component, label: 'Express', color: '#E5E7EB', glow: 'rgba(229,231,235,0.3)' },
+    { Icon: Boxes, label: 'React', color: '#7DD3FC', glow: 'rgba(125,211,252,0.35)' },
+    { Icon: Cpu, label: 'Node', color: '#86EFAC', glow: 'rgba(134,239,172,0.35)' },
+  ];
 
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setEntered(true); obs.disconnect(); } },
-      { threshold: 0.1 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!entered) return;
-
-    anime({ targets: headingRef.current, translateY: [60, 0], opacity: [0, 1], duration: 1000, easing: "easeOutExpo", delay: 100 });
-    anime({ targets: subRef.current, translateY: [40, 0], opacity: [0, 1], duration: 1000, easing: "easeOutExpo", delay: 400 });
-
-    const cards = gridRef.current?.children;
-    if (cards) {
-      anime({ targets: Array.from(cards), translateY: [40, 0], opacity: [0, 1], duration: 700, delay: anime.stagger(100, { start: 600 }), easing: "easeOutExpo" });
-    }
-  }, [entered]);
+  const headingRef = useBlurFadeIn({ y: 10, duration: 800, delay: 200, blur: 8 });
 
   return (
-    <section id="skills" ref={sectionRef} style={{ backgroundColor: C.surface, color: C.onSurface, fontFamily: "'Hanken Grotesk', sans-serif", minHeight: "100vh", position: "relative" }}>
-      {/* Google Fonts for this section */}
-      <link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,400;0,700;0,800;1,800&family=Hanken+Grotesk:wght@400;500&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <motion.section
+      className="relative overflow-hidden rounded-[30px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.05)]"
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: false, amount: 0.25 }}
+      transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div
+        className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full blur-[70px] opacity-40"
+        style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.55), transparent 70%)' }}
+      />
 
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px" }}>
-
-        {/* ─── HERO: heading left + orbit right ─── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 py-12 relative overflow-hidden">
-          {/* Left column */}
-          <div className="lg:col-span-5 flex flex-col justify-center">
-            <div className="flex items-center gap-3 mb-6">
-              <span style={{ color: C.primary, fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: "0.1em", fontWeight: 500 }}>[ 03 ] — STACK</span>
-            </div>
-
-            <h1 ref={headingRef} style={{ fontFamily: "'Epilogue', sans-serif", fontSize: "clamp(48px, 6vw, 84px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: 32, opacity: 0 }}>
-              Tools I<br />
-              <span style={{ fontStyle: "italic", color: C.primary }}>master</span><br />
-              daily.
-            </h1>
-
-            <p ref={subRef} style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, lineHeight: 1.6, color: C.onSurfaceVariant, maxWidth: 384, marginBottom: 40, opacity: 0 }}>
-              A carefully curated toolkit powering everything I build — from intuitive interfaces to robust backend systems.
-            </p>
-          </div>
-
-          {/* Right column — Orbit */}
-          <div className="lg:col-span-7">
-            <TechOrbit />
-          </div>
+      <div className="relative flex items-center justify-between">
+        <span className="font-mono text-[15px] tracking-[0.08em] text-white/50">06</span>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-violet-400/25 bg-violet-400/10">
+          <Layers3 size={16} className="text-violet-300" />
         </div>
-
-        {/* ─── Vertical decorative sidebar ─── */}
-        <div className="fixed left-6 top-1/2 -translate-y-1/2 rotate-180 pointer-events-none hidden lg:block"
-          style={{ writingMode: "vertical-lr", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, letterSpacing: "0.5em", fontWeight: 500, color: C.onSurfaceVariant + "4D", textTransform: "uppercase", zIndex: 5 }}>
-          : ENGINEERING. SOLVED.
-        </div>
-
-        {/* ─── SKILLS GRID ─── */}
-        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-          {LIGHT_CARDS.map((s) => (
-            <SkillCardLight key={s.num} {...s} />
-          ))}
-          <AICard />
-        </div>
-
-        {/* ─── MERN BANNER ─── */}
-        <MERNBanner />
-
-        {/* Bottom spacing */}
-        <div style={{ height: 80 }} />
       </div>
 
-      {/* Material Symbols baseline settings */}
-      <style>{`
-        .material-symbols-outlined {
-          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-      `}</style>
+      <h3
+        ref={headingRef}
+        style={{ opacity: 0, filter: 'blur(8px)' }}
+        className="relative mt-4 font-display text-[30px] leading-none tracking-[-0.04em] text-white"
+      >
+        MERN Full Stack
+      </h3>
+      <p className="relative mt-3 font-display text-[15px] leading-[1.65] text-white/60">
+        End-to-end integration mapping for high-performance distributed systems utilizing the modern web standards.
+      </p>
+
+      <div className="relative mt-5 grid grid-cols-2 gap-3">
+        {icons.map(({ Icon, label, color, glow }, i) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false }}
+            transition={{ duration: 0.45, delay: 0.15 + i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={{ y: -4 }}
+            className="group relative flex flex-col items-start gap-3 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] p-4 transition-colors duration-300 hover:border-white/20"
+          >
+            <div
+              className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100"
+              style={{ background: glow }}
+            />
+            <div
+              className="relative flex h-9 w-9 items-center justify-center rounded-xl border transition-transform duration-300 group-hover:scale-110"
+              style={{ borderColor: `${color}33`, backgroundColor: `${color}14` }}
+            >
+              <Icon size={16} strokeWidth={1.75} style={{ color }} />
+            </div>
+            <span className="relative font-mono text-[12px] tracking-[0.02em] text-white/75">
+              {label}
+            </span>
+          </motion.div>
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
+
+export default function TechStackSection() {
+  const headingRef = useBlurFadeIn({ y: 14, duration: 900, delay: 0, blur: 12 });
+
+  return (
+    <section className="relative overflow-hidden bg-[#08080a] px-4 py-16 text-white sm:px-6 lg:px-6 lg:py-24">
+      <HoloBackdrop />
+
+      <div className="relative z-10 mx-auto flex max-w-[1500px] flex-col gap-10">
+        <motion.div
+          className='w-full h-auto flex'
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.4 }}
+        >
+          <div className="w-[60%]">
+            <motion.div variants={fadeUp} className="mb-4 font-mono text-[13px] tracking-[0.16em] text-violet-300">
+              PORTFOLIO.CORE.MODULES
+            </motion.div>
+            <h2
+              ref={headingRef}
+              style={{ opacity: 0, filter: 'blur(12px)' }}
+              className="font-grotesk text-[clamp(44px,7vw,92px)] leading-[0.96] tracking-[-0.06em] text-white font-semibold"
+            >
+              Engineering
+              <br />
+              <span className="text-orange-400 drop-shadow-[0_0_26px_rgba(255,94,58,0.28)]">
+                Ecosystem
+              </span>
+            </h2>
+            <motion.p variants={fadeUp} className="mt-5 max-w-3xl font-mono text-[16px] leading-8 text-white/70">
+              A holographic interface for your stack — layered, luminous, and tuned for subtle motion rather than visual noise.
+            </motion.p>
+          </div>
+          <motion.div variants={fadeInFromRight} className='w-[40%] flex justify-end'>
+            <Terminal>
+              <TypingAnimation>&gt; pnpm dlx shadcn@latest init</TypingAnimation>
+              <AnimatedSpan className="text-green-500">
+                ✔ Building MERN projects.
+              </AnimatedSpan>
+              <AnimatedSpan className="text-green-500">
+                ✔ Exploring AI integration.
+              </AnimatedSpan>
+              <AnimatedSpan className="text-green-500">
+                ✔ Designing scalable systems.
+              </AnimatedSpan>
+              <AnimatedSpan className="text-green-500">
+                ✔ Shipping production-ready apps.
+              </AnimatedSpan>
+              <TypingAnimation className="text-muted-foreground">
+                Status: Always Learning.
+              </TypingAnimation>
+            </Terminal>
+          </motion.div>
+        </motion.div>
+
+
+        <div className="relative min-h-auto pt-2">
+          <motion.div
+            className="pointer-events-none absolute inset-0 flex items-center justify-center"
+            initial={{ opacity: 0, scale: 0.92 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="h-[min(42vw,540px)] w-[min(42vw,540px)] rounded-full bg-[radial-gradient(circle_at_30%_28%,rgba(255,255,255,0.24),transparent_18%),radial-gradient(circle_at_50%_50%,rgba(255,94,58,0.38),rgba(180,140,255,0.10)_42%,rgba(0,0,0,0)_72%)] shadow-[inset_0_0_60px_rgba(255,255,255,0.06),0_0_120px_rgba(200,80,42,0.22)] [transform:perspective(1300px)_rotateX(68deg)] animate-[pulse_9s_ease-in-out_infinite]" />
+          </motion.div>
+
+          <div className="relative z-10 grid gap-6 xl:grid-cols-[1.35fr_0.72fr]">
+            <div className="grid gap-6 md:grid-cols-2 [perspective:1600px]">
+              {MODULES.map((m, i) => (
+                <HoloCard
+                  key={m.id}
+                  mod={m}
+                  index={i}
+                  bgImage={[
+                    "frontend_card.jpg",
+                    "backend_card.jpg",
+                    "database_card.jpg",
+                    "tools_card.jpg",
+                  ][i]}
+                />
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-5">
+              <AIOrbit />
+              <MERNPanel />
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

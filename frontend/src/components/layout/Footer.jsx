@@ -1,5 +1,4 @@
 "use client";
-import AsciiArtMatrixDemo from "@/components/ui/ascii-art-demo-matrix";
 
 export default function Footer() {
   return (
@@ -23,15 +22,7 @@ export default function Footer() {
           </div>
           {/* ASCII Art portrait — replaces DP watermark */}
           <div className="mt-12 max-w-[150px]">
-            <AsciiArtMatrixDemo
-              src="/public/logo.png"
-              resolution={80}
-              color="#C84B2D"
-              animationStyle="matrix"
-              animationDuration={1.5}
-              animateOnView={false}
-              className="aspect-square w-full bg-transparent"
-            />
+
           </div>
 
           <h2
