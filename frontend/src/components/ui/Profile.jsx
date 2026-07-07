@@ -1,31 +1,56 @@
-import { Dribbble, Facebook, Linkedin, X } from "lucide-react";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
+import { FaG, FaXTwitter } from "react-icons/fa6";
 
 export default function Profile() {
     return (
-        <div className="group/profile flex h-52 w-52 flex-col items-center justify-center rounded-3xl bg-cyan-200 p-4 shadow-sm transition-shadow duration-300 hover:shadow-black/25 dark:bg-zinc-800">
+        <div className="group/profile flex h-52 w-52 flex-col items-center justify-center rounded-3xl bg-[#C84B2D]/10 border border-[#C84B2D]/25 p-4 shadow-sm transition-shadow duration-300 hover:shadow-black/25">
             <img
-                alt=""
-                src="https://sm.ign.com/ign_nordic/cover/a/avatar-gen/avatar-generations_prsz.jpg"
-                className="h-16 w-16 rounded-full duration-300 ease-in-out hover:scale-125"
+                alt="Profile avatar"
+                src="/lanyardPhoto.png"
+                className="h-16 w-16 rounded-full object-cover duration-300 ease-in-out"
             />
+
             <div className="mt-2 flex flex-col items-center justify-center">
-                <h3 className="font-sans font-semibold text-foreground">Avatar Aang</h3>
-                <p className="text-sm font-light text-muted-foreground">The last air bender</p>
+                <h3 className="font-sans font-semibold text-[#f0ebe0]">
+                    Dhruv Pal
+                </h3>
+                <p className="text-sm font-light text-[rgba(240,235,224,0.6)]">
+                    The last air bender
+                </p>
             </div>
-            <div className="mt-2 flex w-full flex-row justify-evenly rounded-3xl bg-background/70 p-2 text-foreground dark:bg-background/25">
-                <a href="https://x.com/?lang=en&mx=2" target="_blank" rel="noopener noreferrer">
-                    <X size={18} className="transition-transform duration-300 hover:scale-110" />
+
+            <div className="mt-2 flex w-full flex-row justify-evenly rounded-3xl bg-[#1a1815]/70 p-2 text-[#f0ebe0]">
+                <a
+                    href="https://x.com/?lang=en&mx=2"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <FaXTwitter
+                        size={18}
+                        className="transition-transform duration-300 hover:scale-110"
+                    />
                 </a>
-                <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer">
-                    <Linkedin size={16} className="transition-transform duration-300 hover:scale-110" />
+                <a
+                    href="https://linkedin.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <FaLinkedin
+                        size={16}
+                        className="transition-transform duration-300 hover:scale-110"
+                    />
                 </a>
-                <a href="https://dribbble.com/" target="_blank" rel="noopener noreferrer">
-                    <Dribbble size={16} className="transition-transform duration-300 hover:scale-110" />
-                </a>
-                <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer">
-                    <Facebook size={16} className="duration-300 hover:scale-110" />
-                </a>
-            </div>
-        </div>
+                <a
+                    href="https://.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <FaGithub
+                        size={16}
+                        className="transition-transform duration-300 hover:scale-110"
+                    />
+                </a >
+            </div >
+        </div >
     );
-} 
+}

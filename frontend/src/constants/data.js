@@ -47,41 +47,44 @@ export const TIMELINE = [
 
 export const PROJECTS = [
   {
-    title: 'Debatable — AI Debate Platform',
+    title: 'Code Arena — Productivity & Session Tracker',
     description:
-      'An AI-powered debate platform where users engage in structured arguments on any topic. Real-time AI moderation, argument scoring, and intelligent rebuttal suggestions — making critical thinking accessible.',
-    tags: ['AI', 'Full Stack', 'MERN'],
+      'A full-stack productivity platform that helps developers track coding sessions, maintain daily streaks, and organize tasks. Built with secure JWT authentication, Redis-powered performance optimization, MongoDB aggregation pipelines, and a responsive React dashboard.',
+    tags: ['Productivity', 'Full Stack', 'MERN'],
     featured: true,
     link: '#',
-    letter: 'D',
-    category: 'Featured · AI · Full Stack · MERN',
+    letter: 'C',
+    category: 'Featured · Productivity · Full Stack · MERN',
   },
   {
-    title: 'ImageZen',
+    title: 'Neosankalp Official Website',
     description:
-      'AI-powered image optimization — compression, background removal, smart crop. Zero quality loss.',
-    tags: ['AI', 'SaaS', 'React'],
+      'Designed and developed a modern, responsive corporate website using React, Tailwind CSS, ShadCN UI, and Radix UI. Focused on reusable components, scalable architecture, and performance optimization for a seamless user experience.',
+    tags: ['React', 'UI/UX', 'Frontend'],
     featured: false,
     link: '#',
-    num: '02',
+    letter: 'N',
+    category: 'Frontend · React · UI Engineering',
   },
   {
-    title: 'Barcode Scanner',
+    title: 'Apex Animated Website',
     description:
-      'Real-time barcode scanning and inventory management system with elegant catalogue UI.',
-    tags: ['Productivity', 'React', 'Node.js'],
+      'Built an immersive landing page featuring GSAP animations, Three.js powered 3D interactions, and Swiper.js transitions while maintaining responsive design and smooth performance.',
+    tags: ['GSAP', 'Three.js', 'Animations'],
     featured: false,
     link: '#',
-    num: '03',
+    letter: 'A',
+    category: 'Creative · Animation · Frontend',
   },
   {
-    title: 'Alumni Network Portal',
+    title: 'Multi-Tenant SaaS',
     description:
-      'Full-featured alumni platform — profiles, mentorship matching, job boards, and event management.',
-    tags: ['Full Stack', 'Community', 'MERN'],
+      'A scalable SaaS backend architecture supporting multi-organization workspaces, role-based access control, secure authentication, project management, and invitation workflows.',
+    tags: ['SaaS', 'Backend', 'Node.js'],
     featured: false,
     link: '#',
-    num: '04',
+    letter: 'S',
+    category: 'Backend · SaaS · Architecture',
   },
 ];
 
