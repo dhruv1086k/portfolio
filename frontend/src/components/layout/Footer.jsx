@@ -29,7 +29,7 @@ export default function Footer() {
           <h2
             className="font-pixelify font-bold text-[#f0ebe0] my-8"
             style={{
-              fontSize: "clamp(48px, 6vw, 72px)",
+              fontSize: "clamp(58px, 6vw, 72px)",
               lineHeight: 0.9,
               letterSpacing: "-2px",
             }}
@@ -64,6 +64,7 @@ export default function Footer() {
               {
                 title: "Connect",
                 links: ["GitHub", "LinkedIn", "Twitter / X", "Resume"],
+                redirectTo: ["https://github.com/dhruv1086k", "https://www.linkedin.com/in/dhruv1086k/", "https://x.com/DhruvPal191912", "https://drive.google.com/uc?export=download&id=1B4aD0ZWQ12C_ghx3IUw6vwu7WENgAZgz"]
               },
               {
                 title: "Projects",
@@ -73,16 +74,16 @@ export default function Footer() {
                 title: "Community",
                 links: ["ALFA Coding Club", "BCA Network", "Mentorship"],
               },
-            ].map(({ title, links }) => (
+            ].map(({ title, links, redirectTo }) => (
               <div key={title}>
                 <p className="font-pixelify text-[10px] tracking-[2px] uppercase text-[rgba(240,235,224,0.35)] mb-4">
                   {title}
                 </p>
                 <ul className="flex flex-col gap-2.5">
-                  {links.map((link) => (
+                  {links.map((link, index) => (
                     <li key={link}>
                       <a
-                        href="#"
+                        href={redirectTo?.[index]}
                         className="group flex items-center gap-1.5 text-[14px] text-[rgba(240,235,224,0.7)] hover:text-[#f0ebe0] transition-colors"
                       >
                         <span className="inline-block w-0 group-hover:w-3 h-px bg-[#C84B2D] transition-all duration-200" />

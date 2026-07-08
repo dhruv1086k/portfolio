@@ -3,7 +3,7 @@ import { FaG, FaXTwitter } from "react-icons/fa6";
 
 export default function Profile() {
     return (
-        <div className="group/profile flex h-52 w-52 flex-col items-center justify-center rounded-3xl bg-[#C84B2D]/10 border border-[#C84B2D]/25 p-4 shadow-sm transition-shadow duration-300 hover:shadow-black/25">
+        <div className="group/profile flex h-52 w-52 flex-col items-center justify-center rounded-3xl bg-[#C84B2D]/10 border border-[#C84B2D]/25 p-4 shadow-sm transition-shadow duration-300 hover:shadow-black/25 max-sm:hidden">
             <img
                 alt="Profile avatar"
                 src="/lanyardPhoto.png"
