@@ -287,7 +287,7 @@ export default function Navbar({ navLogoRef }) {
             >
               <PixelChipButton
                 label="RESUME"
-                href="#"
+                href="https://drive.google.com/uc?export=download&id=1B4aD0ZWQ12C_ghx3IUw6vwu7WENgAZgz"
                 cols={8}
                 cell={11}
                 fontSize={12}
@@ -453,7 +453,7 @@ export default function Navbar({ navLogoRef }) {
                     accentColor="#FF6A00"
                     textColor="#fff"
                     bgColor="#100D0A"
-                    href="#"
+                    href="https://drive.google.com/uc?export=download&id=1B4aD0ZWQ12C_ghx3IUw6vwu7WENgAZgz"
                     cols={8}
                     cell={11}
                     fontSize={12}
