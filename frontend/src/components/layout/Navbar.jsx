@@ -308,47 +308,47 @@ export default function Navbar({ navLogoRef }) {
           aria-expanded={menuOpen}
           className="min-[961px]:hidden relative z-[110] flex items-center justify-center"
           style={{
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             background: "transparent",
             border: "none",
             cursor: "pointer",
           }}
         >
-          <div style={{ width: 24, height: 14, position: "relative" }}>
-            <motion.span
-              animate={
-                menuOpen
-                  ? { rotate: 45, top: "50%", y: "-50%" }
-                  : { rotate: 0, top: "0%", y: "0%" }
-              }
-              transition={{ duration: 0.25, ease: EASE_IN_OUT }}
+          <svg
+            viewBox="0 0 32 32"
+            style={{
+              height: "2em",
+              transform: menuOpen ? "rotate(-45deg)" : "rotate(0deg)",
+              transition: "transform 600ms cubic-bezier(0.4,0,0.2,1)",
+            }}
+          >
+            <path
+              d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"
               style={{
-                position: "absolute",
-                left: 0,
-                width: "100%",
-                height: 2,
-                background: menuOpen ? "#F5F2EB" : "#0D0C0A",
-                transformOrigin: "center",
+                fill: "none",
+                stroke: menuOpen ? "#F5F2EB" : "#0D0C0A",
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                strokeWidth: 3,
+                strokeDasharray: menuOpen ? "20 300" : "12 63",
+                strokeDashoffset: menuOpen ? -32.42 : 0,
+                transition:
+                  "stroke-dasharray 600ms cubic-bezier(0.4,0,0.2,1), stroke-dashoffset 600ms cubic-bezier(0.4,0,0.2,1), stroke 400ms ease",
               }}
             />
-            <motion.span
-              animate={
-                menuOpen
-                  ? { rotate: -45, bottom: "50%", y: "50%" }
-                  : { rotate: 0, bottom: "0%", y: "0%" }
-              }
-              transition={{ duration: 0.25, ease: EASE_IN_OUT }}
+            <path
+              d="M7 16 27 16"
               style={{
-                position: "absolute",
-                left: 0,
-                width: "100%",
-                height: 2,
-                background: menuOpen ? "#F5F2EB" : "#0D0C0A",
-                transformOrigin: "center",
+                fill: "none",
+                stroke: menuOpen ? "#F5F2EB" : "#0D0C0A",
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                strokeWidth: 3,
+                transition: "stroke 400ms ease",
               }}
             />
-          </div>
+          </svg>
         </motion.button>
       </nav>
 
@@ -360,12 +360,21 @@ export default function Navbar({ navLogoRef }) {
               <motion.div
                 key={i}
                 initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                exit={{ scaleX: 0 }}
-                transition={{
-                  duration: 0.35,
-                  delay: i * 0.04,
-                  ease: [0.76, 0, 0.24, 1],
+                animate={{
+                  scaleX: 1,
+                  transition: {
+                    duration: 0.35,
+                    delay: i * 0.04,
+                    ease: [0.76, 0, 0.24, 1],
+                  },
+                }}
+                exit={{
+                  scaleX: 0,
+                  transition: {
+                    duration: 0.3,
+                    delay: 0.42 + (STRIP_COUNT - 1 - i) * 0.025,
+                    ease: [0.76, 0, 0.24, 1],
+                  },
                 }}
                 style={{
                   position: "absolute",
@@ -380,9 +389,8 @@ export default function Navbar({ navLogoRef }) {
             ))}
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ delay: 0.25, duration: 0.25 }}
+              animate={{ opacity: 1, transition: { delay: 0.25, duration: 0.25 } }}
+              exit={{ opacity: 0, transition: { delay: 0.28, duration: 0.15 } }}
               className="absolute inset-0 flex flex-col"
             >
               <div
@@ -400,12 +408,23 @@ export default function Navbar({ navLogoRef }) {
                   <motion.div
                     key={link.label}
                     initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 24 }}
-                    transition={{
-                      duration: 0.8,
-                      delay: 0.8 + i * 0.06,
-                      ease: EASE_OUT_EXPO,
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      transition: {
+                        duration: 0.8,
+                        delay: 0.8 + i * 0.06,
+                        ease: EASE_OUT_EXPO,
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: 16,
+                      transition: {
+                        duration: 0.22,
+                        delay: (NAV_LINKS.length - 1 - i) * 0.03,
+                        ease: EASE_IN_OUT,
+                      },
                     }}
                     style={{
                       borderBottom: "1px solid rgba(196,80,26,0.12)",
@@ -440,11 +459,18 @@ export default function Navbar({ navLogoRef }) {
                 ))}
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 16 }}
-                  transition={{
-                    duration: 0.35,
-                    delay: 1.2 + NAV_LINKS.length * 0.06,
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    transition: {
+                      duration: 0.35,
+                      delay: 1.2 + NAV_LINKS.length * 0.06,
+                    },
+                  }}
+                  exit={{
+                    opacity: 0,
+                    y: 16,
+                    transition: { duration: 0.2, delay: 0.09 },
                   }}
                   className="mt-6"
                 >
@@ -462,9 +488,8 @@ export default function Navbar({ navLogoRef }) {
               </div>
               <motion.div
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5, delay: 1.85 }}
+                animate={{ opacity: 1, transition: { duration: 0.5, delay: 1.85 } }}
+                exit={{ opacity: 0, transition: { duration: 0.2, delay: 0.05 } }}
                 className="px-8 pb-8 pt-4 relative z-10"
                 style={{ borderTop: "1px solid rgba(196,80,26,0.12)" }}
               >
@@ -511,11 +536,12 @@ export default function Navbar({ navLogoRef }) {
                     </p>
                   </div>
                 </div>
-              </motion.div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              </motion.div >
+            </motion.div >
+          </div >
+        )
+        }
+      </AnimatePresence >
     </>
   );
 }
