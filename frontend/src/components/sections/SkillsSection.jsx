@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { AnimatedSpan, Terminal, TypingAnimation } from '../ui/terminal';
 import { useDirectionalReveal } from '../../hooks/useDirectionalReveal';
+import TrueFocus from '../ui/TrueFocus';
 
 const MODULES = [
   {
@@ -443,20 +444,28 @@ export default function TechStackSection() {
             transition={topTransition}
           >
             <div className="w-[60%]">
-              <motion.div variants={fadeUp} className="mb-4 font-mono text-[13px] tracking-[0.16em] text-violet-300">
+              <motion.div variants={fadeUp} className="mb-8 font-mono text-[13px] tracking-[0.16em] text-violet-300">
                 PORTFOLIO.CORE.MODULES
               </motion.div>
-              <motion.h2
-                variants={headingVariants}
-                className="font-grotesk text-[clamp(44px,7vw,92px)] leading-[0.96] tracking-[-0.06em] text-white font-semibold"
-              >
-                Engineering
-                <br />
-                <span className="text-orange-400 drop-shadow-[0_0_20px_rgba(255,94,58,0.25)]">
-                  Ecosystem
-                </span>
-              </motion.h2>
-              <motion.p variants={fadeUp} className="mt-5 max-w-3xl font-mono text-[16px] leading-8 text-white/70">
+              <motion.div variants={headingVariants}>
+                <TrueFocus
+                  sentence="Engineering Ecosystem"
+                  manualMode={false}
+                  blurAmount={6}
+                  borderColor="#FF8A4C"
+                  glowColor="rgba(255,138,76,0.6)"
+                  animationDuration={0.5}
+                  pauseBetweenAnimations={2}
+                  containerClassName="flex flex-col items-start"
+                  className="font-grotesk font-semibold leading-[0.96] tracking-[-0.06em] text-[clamp(44px,7vw,92px)] my-2"
+                  wordClassName={(word) =>
+                    word === 'Ecosystem'
+                      ? 'text-orange-400 drop-shadow-[0_0_20px_rgba(255,94,58,0.25)]'
+                      : 'text-white'
+                  }
+                />
+              </motion.div>
+              <motion.p variants={fadeUp} className="mt-10 max-w-3xl font-mono text-[16px] leading-8 text-white/70">
                 A holographic interface for your stack — layered, luminous, and tuned for subtle motion rather than visual noise.
               </motion.p>
             </div>

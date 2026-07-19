@@ -34,7 +34,8 @@ export const AnimatedSpan = ({
 }) => {
   const elementRef = useRef(null)
   const isInView = useInView(elementRef, {
-    amount: 0.3,
+    amount: 0.1,
+    margin: "0px 0px -100px 0px",
     once: true,
   })
 
