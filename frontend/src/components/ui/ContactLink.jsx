@@ -1,3 +1,5 @@
+import PixelArrow from "./pixelArrow";
+
 export default function ContactLink({ platform, url, handle }) {
   return (
     <a
@@ -10,9 +12,7 @@ export default function ContactLink({ platform, url, handle }) {
         {platform}
       </span>
       <span className="font-mono text-[15px] text-ink-2">{handle}</span>
-      <span className="text-base text-ink-4 transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:text-ink">
-        ↗
-      </span>
-    </a>
+      <PixelArrow groupHover size={26} />
+    </a >
   );
 }

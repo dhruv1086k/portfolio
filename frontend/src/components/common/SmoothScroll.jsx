@@ -13,45 +13,31 @@ export default function SmoothScroll({ children }) {
 
   useEffect(() => {
     const lenis = new Lenis({
-      // ── The cinematic sweet spot ───────────────────────────────
-      // DO NOT use duration + lerp together — lerp overrides duration.
-      // Use lerp ONLY. This is the single most important setting.
-      lerp: 0.1, // ← the ka1ki feel: responsive but weighted
+      lerp: 0.06,
+      easing: (t) => 1 - Math.pow(1 - t, 3),
 
-      // ── Easing: expo out ──────────────────────────────────────
-      // Fast response on input, then floats into rest.
-      // This is what makes it feel like a camera with weight, not laggy.
-      easing: (t) => 1 - Math.pow(1 - t, 4), // ease-out-quartic
-
-      // ── Input ─────────────────────────────────────────────────
       smoothWheel: true,
-      wheelMultiplier: 1, // keep native distance — don't slow the wheel
-      touchMultiplier: 2,
+      wheelMultiplier: 0.8,
 
-      // ── Touch ─────────────────────────────────────────────────
-      syncTouch: false, // let native touch inertia handle mobile
+      smoothTouch: true,
+      touchMultiplier: 0.7,
+      syncTouch: false,
+
       orientation: "vertical",
       gestureOrientation: "vertical",
 
-      // ── Prevent hijacking scrollable children ─────────────────
       prevent: (node) => node.closest?.("[data-lenis-prevent]") != null,
     });
 
     lenisRef.current = lenis;
 
-    // ── GSAP ticker — frame-perfect, no drift ──────────────────
-    // This is the key difference from raw rAF.
-    // GSAP runs at a fixed framerate and handles tab visibility,
-    // so the scroll never stutters when you tab back in.
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
+    const update = (time) => lenis.raf(time * 1000);
+    gsap.ticker.add(update);
 
-    // Disable GSAP lag smoothing so there's zero artificial delay
     gsap.ticker.lagSmoothing(0);
 
     return () => {
-      gsap.ticker.remove((time) => lenis.raf(time * 1000));
+      gsap.ticker.remove(update);
       lenis.destroy();
       lenisRef.current = null;
     };

@@ -226,8 +226,11 @@ const ScrollStack = ({
         infinite: false,
         wheelMultiplier: 1,
         lerp: 0.1,
+        // Matches the global instance's touch feel: 1:1 finger tracking
+        // while touching, momentum tail on release.
         syncTouch: true,
         syncTouchLerp: 0.075,
+        touchInertiaMultiplier: 35,
       });
 
       lenis.on("scroll", handleScroll);
@@ -305,18 +308,18 @@ const ScrollStack = ({
 
   const containerStyles = useWindowScroll
     ? {
-        overscrollBehavior: "contain",
-        WebkitTransform: "translateZ(0)",
-        transform: "translateZ(0)",
-      }
+      overscrollBehavior: "contain",
+      WebkitTransform: "translateZ(0)",
+      transform: "translateZ(0)",
+    }
     : {
-        overscrollBehavior: "contain",
-        WebkitOverflowScrolling: "touch",
-        scrollBehavior: "smooth",
-        WebkitTransform: "translateZ(0)",
-        transform: "translateZ(0)",
-        willChange: "scroll-position",
-      };
+      overscrollBehavior: "contain",
+      WebkitOverflowScrolling: "touch",
+      scrollBehavior: "smooth",
+      WebkitTransform: "translateZ(0)",
+      transform: "translateZ(0)",
+      willChange: "scroll-position",
+    };
 
   const containerClassName = useWindowScroll
     ? `relative w-full ${className}`.trim()

@@ -360,7 +360,7 @@ export default function HeroSection() {
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.6, ease: EASE_EXPO, delay: T.label }}
             >
-              [09.03] - DHRUV PAL
+              [0X.IX] - DHRUV PAL
             </motion.span>
           </div>
           <div style={{ overflow: "hidden" }}>

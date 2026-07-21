@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, redirect, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import PixelButton from "../ui/PixelButton";
 import { useLenis } from "../common/SmoothScroll";
@@ -18,17 +18,6 @@ const STRIP_COUNT = 5;
 const GLITCH_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?/01XYZ#%&";
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1];
 const EASE_IN_OUT = [0.65, 0, 0.35, 1];
-
-const handleLogoClick = (e) => {
-  if (isHome) {
-    e.preventDefault();
-    if (lenisRef?.current) {
-      lenisRef.current.scrollTo(0, { duration: 1.2 });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }
-};
 
 function useScramble(text, { delay = 0, totalFrames = 12 } = {}) {
   const spanRef = useRef(null);
@@ -192,11 +181,13 @@ function NavLink({ link, index, onBootDone }) {
 
 export default function Navbar({ navLogoRef }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const isHome = location.pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
   const [allBootDone, setAllBootDone] = useState(false);
   const bootCountRef = useRef(0);
   const lenisRef = useLenis();
+  const gridLogoRef = useRef(null);
 
   const { loaderDone } = useLoader();
 
@@ -220,6 +211,47 @@ export default function Navbar({ navLogoRef }) {
     setMenuOpen(false);
   };
 
+  const handleLogoClick = () => {
+    if (gridLogoRef.current?.play) {
+      gridLogoRef.current.play();
+    }
+
+    setTimeout(() => {
+      if (!isHome) {
+        redirect("/");
+      }
+      requestAnimationFrame(() => {
+        if (lenisRef?.current) {
+          lenisRef.current.scrollTo(0, { duration: 1.2 });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    }, 500);
+  };
+
+  useEffect(() => {
+    if (menuOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [menuOpen]);
+
   return (
     <>
       <nav
@@ -242,13 +274,22 @@ export default function Navbar({ navLogoRef }) {
             }
             transition={{ duration: 0.7, ease: EASE_OUT_EXPO, delay: 0.05 }}
           >
-            <Link
-              to="/"
-              className="flex items-center no-underline"
+            <button
+              type="button"
               onClick={handleLogoClick}
+              aria-label="Go to homepage"
+              className="flex items-center"
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                margin: 0,
+                cursor: "pointer",
+                font: "inherit",
+              }}
             >
-              <GridLogo SQ={10} GAP={2} />
-            </Link>
+              <GridLogo ref={gridLogoRef} SQ={10} GAP={2} />
+            </button>
           </motion.div>
         </div>
 
@@ -320,7 +361,7 @@ export default function Navbar({ navLogoRef }) {
             style={{
               height: "2em",
               transform: menuOpen ? "rotate(-45deg)" : "rotate(0deg)",
-              transition: "transform 600ms cubic-bezier(0.4,0,0.2,1)",
+              transition: "transform 1200ms cubic-bezier(0.4,0,0.2,1)",
             }}
           >
             <path
@@ -334,7 +375,7 @@ export default function Navbar({ navLogoRef }) {
                 strokeDasharray: menuOpen ? "20 300" : "12 63",
                 strokeDashoffset: menuOpen ? -32.42 : 0,
                 transition:
-                  "stroke-dasharray 600ms cubic-bezier(0.4,0,0.2,1), stroke-dashoffset 600ms cubic-bezier(0.4,0,0.2,1), stroke 400ms ease",
+                  "stroke-dasharray 1200ms cubic-bezier(0.4,0,0.2,1), stroke-dashoffset 1200ms cubic-bezier(0.4,0,0.2,1), stroke 1200ms ease",
               }}
             />
             <path
@@ -345,7 +386,7 @@ export default function Navbar({ navLogoRef }) {
                 strokeLinecap: "round",
                 strokeLinejoin: "round",
                 strokeWidth: 3,
-                transition: "stroke 400ms ease",
+                transition: "stroke 1200ms ease",
               }}
             />
           </svg>
@@ -355,7 +396,10 @@ export default function Navbar({ navLogoRef }) {
       {/* Mobile menu */}
       <AnimatePresence>
         {menuOpen && (
-          <div className="fixed inset-0 z-[90] min-[961px]:hidden">
+          <div
+            className="fixed inset-0 z-[90] min-[961px]:hidden"
+            style={{ overscrollBehavior: "contain" }}
+          >
             {Array.from({ length: STRIP_COUNT }).map((_, i) => (
               <motion.div
                 key={i}
